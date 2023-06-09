@@ -97,6 +97,7 @@ def send_message_to_slack(text, channel):
 
 blogpost , post_id = get_last_blogpost(base_url, confluence_username, confluence_token)
 client = WebClient(token=slack_token)
+page_url = f"{base_url}/pages/viewpage.action?pageId={post_id}"
 
 last_line = get_last_line(history)
 
@@ -127,7 +128,7 @@ if blogpost:
       if summary:
          logging.info(summary)
          logging.info(f'Zusammenfassung abgeschlossen （ ^_^）o自自o（^_^ ）')
-         send_message_to_slack(summary, channel)
+         send_message_to_slack(summary + "\n" + page_url, channel)
          logging.info(f'Zusammanfassung wurde an Slack gesendet  ~(^-^)~')
          with open(history, 'a') as f:
             f.write(post_id + '\n')
