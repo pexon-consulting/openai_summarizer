@@ -2,8 +2,8 @@
 
 
 ## Installation
-Container einfach auf gewünschter plattform Deployen
-dockerimage z.B mit folgendem Befehl bauen:
+Container einfach auf gewünschter plattform Deployen.
+Dockerimage z.B mit folgendem Befehl bauen:
 
 ```bash
 docker build -t automation_blogpost ../blogpost_zusammenfassung_automation/
