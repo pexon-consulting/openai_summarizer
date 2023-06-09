@@ -8,6 +8,14 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import logging
 
+base_url = os.getenv('base_url')
+confluence_username = os.getenv('confluence_username')
+confluence_token = os.getenv('confluence_token')
+openai_api_key = os.getenv('openai_key')
+slack_token = os.getenv('slack_token')
+channel = os.getenv('slack_channel')
+history = 'log/history.txt' #
+
 logging.basicConfig(filename='log/script.log', level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -62,7 +70,7 @@ def generate_summary(statement, text, api_key):
         summary = response['choices'][0]['text'].strip()
         return summary
     else:
-        logging.error(f'Fehler beim Generieren der Zusammenfassung. (╯°□°）╯︵ ┻━┻')
+        logging.error(f'Fehler beim Senden an Slack. (╯°□°）╯︵ ┻━┻')
         sys.exit(1)
 
     return None
@@ -80,22 +88,12 @@ def extract_text(input):
     return None
 
 def send_message_to_slack(text, channel):
-    try:
-        response = client.chat_postMessage(
-          channel=channel,
-          text=text)
-        assert response["message"]["text"] == text
-    except SlackApiError as e:
+    response = client.chat_postMessage(
+      channel=channel,
+      text=text)
+    if response.status_code != 200:
         logging.error(f"Fehler beim Senden der Nachricht an Slack: {e.response['error']}")
         sys.exit(1)
-
-base_url = os.getenv('base_url')
-confluence_username = os.getenv('confluence_username')
-confluence_token = os.getenv('confluence_token')
-openai_api_key = os.getenv('openai_key')
-slack_token = os.getenv('slack_token')
-channel = os.getenv('slack_channel')
-history = 'logs/history.txt' #
 
 blogpost , post_id = get_last_blogpost(base_url, confluence_username, confluence_token)
 client = WebClient(token=slack_token)
@@ -108,9 +106,9 @@ else:
     last_id = "0" 
     with open(history, 'a') as f:
         f.write('Anfang der Historie (☞ﾟヮﾟ)☞' + '\n')
-logging.info(f'{last_id} --> {post_id}')
+    logging.info(f'{last_id} --> {post_id}')
 
-statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints zusammen. Fange an mit "Zusammenfassung aus dem letzten Blogpost":'
+statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints in einem Slack-API-Stil sein. Überschriften sollen mit einfachen "*" großgeschrieben sein. Fange an mit "Zusammenfassung aus dem letzten Blogpost":'
 #Midjourney Prompt noch nicht implementiert
 #statement_prompt = f"Beschreibe mir ein simples Bild auf Englisch ohne Eigennamen welches die Keywords aus diesem Beitrag enthält mit maximal 150 Wörtern:"
 
