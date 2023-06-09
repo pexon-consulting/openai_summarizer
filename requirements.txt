@@ -1,0 +1,4 @@
+requests
+openai
+beautifulsoup4
+slack_sdk
