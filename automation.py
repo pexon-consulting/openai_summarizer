@@ -8,7 +8,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import logging
 
-logging.basicConfig(filename='script_log.txt', level=logging.INFO, 
+logging.basicConfig(filename='logs/script_log.txt', level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def get_last_line(filename):
@@ -95,7 +95,7 @@ confluence_token = os.getenv('confluence_token')
 openai_api_key = os.getenv('openai_key')
 slack_token = os.getenv('slack_token')
 channel = os.getenv('slack_channel')
-history = 'history.txt' #
+history = 'logs/history.txt' #
 
 blogpost , post_id, author = get_last_blogpost(base_url, confluence_username, confluence_token)
 client = WebClient(token=slack_token)
