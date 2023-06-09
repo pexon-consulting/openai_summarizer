@@ -8,7 +8,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import logging
 
-logging.basicConfig(filename='logs/script_log.txt', level=logging.INFO, 
+logging.basicConfig(filename='log/script.log', level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def get_last_line(filename):
@@ -52,7 +52,7 @@ def generate_summary(statement, text, api_key):
     response = openai.Completion.create(
         engine="text-davinci-003",
         prompt=prompt,
-        max_tokens=350,
+        max_tokens=500,
         n=1,
         stop=None,
         temperature=0.3
@@ -97,7 +97,7 @@ slack_token = os.getenv('slack_token')
 channel = os.getenv('slack_channel')
 history = 'logs/history.txt' #
 
-blogpost , post_id, author = get_last_blogpost(base_url, confluence_username, confluence_token)
+blogpost , post_id = get_last_blogpost(base_url, confluence_username, confluence_token)
 client = WebClient(token=slack_token)
 
 last_line = get_last_line(history)
@@ -131,7 +131,7 @@ if blogpost:
          logging.info(f'Zusammenfassung abgeschlossen （ ^_^）o自自o（^_^ ）')
          send_message_to_slack(summary, channel)
          logging.info(f'Zusammanfassung wurde an Slack gesendet  ~(^-^)~')
-         with open(filename, 'a') as f:
+         with open(history, 'a') as f:
             f.write(post_id + '\n')
       else:
             logging.error(f'Fehler beim Generieren der Zusammenfassung. (╯°□°）╯︵ ┻━┻')
