@@ -7,7 +7,12 @@ from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import logging
-
+'''
+base_url = sys.argv[1]
+confluence_username = sys.argv[2]
+confluence_token = sys.argv[3]
+openai_api_key =sys.argv[4]
+'''
 logging.basicConfig(filename='script_log.txt', level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -89,12 +94,12 @@ def send_message_to_slack(text, channel):
         logging.error(f"Fehler beim Senden der Nachricht an Slack: {e.response['error']}")
         sys.exit(1)
 
-base_url = os.getenv('base_url')
-confluence_username = os.getenv('confluence_username')
-confluence_token = os.getenv('confluence_token')
-openai_api_key = os.getenv('openai_key')
-slack_token = os.getenv('slack_token')
-channel = os.getenv('slack_channel')
+base_url = "<insert base api_url>"
+confluence_username = "<insert confluence user>"
+confluence_token = "<insert confluence token>"
+openai_api_key = "<insert api key>"
+slack_token = "<insert slack token>"
+channel = "C05B0BRV4DA"
 history = 'history.txt' #
 
 blogpost , post_id, author = get_last_blogpost(base_url, confluence_username, confluence_token)
@@ -110,7 +115,7 @@ else:
         f.write('Anfang der Historie (☞ﾟヮﾟ)☞' + '\n')
 logging.info(f'{last_id} --> {post_id}')
 
-statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints zusammen. Fange an mit "Zusammenfassung aus dem letzten Blogpost":'
+statement = f"Du bist Pexon und erstellst eine lockere Zusammenfassung deines Blogbeitrags. Fasse folgendes in maximal 120 Wörtern zusammen:"
 #Midjourney Prompt noch nicht implementiert
 #statement_prompt = f"Beschreibe mir ein simples Bild auf Englisch ohne Eigennamen welches die Keywords aus diesem Beitrag enthält mit maximal 150 Wörtern:"
 
@@ -133,6 +138,7 @@ if blogpost:
          logging.info(f'Zusammanfassung wurde an Slack gesendet  ~(^-^)~')
          with open(filename, 'a') as f:
             f.write(post_id + '\n')
+         #print(prompt)
       else:
             logging.error(f'Fehler beim Generieren der Zusammenfassung. (╯°□°）╯︵ ┻━┻')
    else:
