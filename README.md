@@ -22,6 +22,13 @@ Es müssen einige Variablen gesetzt werden:
 	- CRON_SCHEDULE 			# standardmäßig wird '0 9-17 * * *' verwendet
 ```
 
+es werden unter /apps/logs zwei Logs erstellt.
+einmal das script.log .
+Dort ein Laufzeitlog aus dem Script geschrieben.
+Zweitens ein history.txt .
+Diese Datei wird benutzt um zu vergleichen ob der letzte Blogpost bereits zusammengefasst wurde und an Slack gesendet wurde.
+Darin werden die ID's der Confluenceseiten geschrieben, welche bereits zusammengefasst wurden. Damit soll Spam vermieden werden.
+Diese Dateien sollten bestmöglich in einem persistenten Volume gespeichert werden. Am wichtigsten ist jedoch die history.txt .
 
 
 ## Support
