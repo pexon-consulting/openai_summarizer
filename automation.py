@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import logging
+from dotenv import load_dotenv
+load_dotenv()
 
 base_url = os.getenv('base_url')
 confluence_username = os.getenv('confluence_username')
