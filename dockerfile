@@ -1,31 +1,23 @@
-FROM python:latest
+FROM python:3.11
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y cron vim
+RUN apt-get update && apt-get install -y
 
 COPY requirements.txt automation.py /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN touch crontab /etc/cron.d/my-cron
-
-RUN chmod 0644 /etc/cron.d/my-cron
-
-RUN mkdir /var/log/cron
-
 RUN mkdir ./log
 RUN touch ./log/script.log
 
-ENV CRON_SCHEDULE='0 9-17 * * *'
-ENV confluence_username=
-ENV confluence_token=
-ENV openai_key=
-ENV slack_token=
-ENV slack_channel=
+ENV Confluence_username=
+ENV Confluence_token=
+ENV Openai_api_key=
+ENV Slack_token=
+ENV Slack_channel=
 
-RUN echo "${CRON_SCHEDULE} root python ./automation.py >> /var/log/cron/cron.log 2>&1" > /etc/cron.d/my-cron
 
-CMD cron && tail -f ./log/script.log
+CMD python ./automation.py
 
 
