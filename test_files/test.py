@@ -11,11 +11,6 @@ from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
 load_dotenv()
 
-
-statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
-#Midjourney Prompt noch nicht implementiert
-#statement_prompt = f"Beschreibe mir ein simples Bild auf Englisch ohne Eigennamen welches die Keywords aus diesem Beitrag enthält mit maximal 150 Wörtern:"
-
 base_url = os.getenv('base_url')
 confluence_username = os.getenv('confluence_username')
 confluence_token = os.getenv('confluence_token')
@@ -26,7 +21,7 @@ statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse fo
 #Midjourney Prompt noch nicht implementiert
 #statement_prompt = f"Beschreibe mir ein simples Bild auf Englisch ohne Eigennamen welches die Keywords aus diesem Beitrag enthält mit maximal 150 Wörtern:"
 
-logging.basicConfig(filename='log/script.log', level=logging.INFO, 
+logging.basicConfig(filename='script.log', level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def search_message_metadata(channel, id):
@@ -115,19 +110,46 @@ def extract_text(input):
 
 def send_message_to_slack(text, channel, id):
     try:
-        response = client.chat_postMessage(
+        response = client.chat_postMessage (
             channel=channel,
             text=text,
-            metadata={
+            metadata= {
                 'event_type': 'confluence_id',
                 'event_payload': {
-                    'id': id
+                    'id': id,
+                    'action_trigger': "sheduled"
                 }
             }
         )
+        
     except SlackApiError as e:
         logging.error(f"Fehler beim Senden der Nachricht an Slack: {e.response['error']}")
         sys.exit(1)
+
+def search_message_metadata(channel, id):
+    latest_summery=''
+    try:
+        # Calculate the timestamp for one month ago
+        two_month_ago = datetime.now() - timedelta(days=60)
+        two_month_ago_timestamp = two_month_ago.timestamp()
+
+        response = client.conversations_history(
+            channel=channel,
+            include_all_metadata=True,
+            #oldest=two_month_ago_timestamp
+        )
+        messages = response['messages']
+        for message in messages:
+            if 'metadata' in message and 'event_type' in message['metadata']:
+                if 'action_trigger' in message['metadata']['event_payload']:
+                    if message['metadata']['event_payload']['action_trigger'] == 'sheduled':
+                        latest_summery = message['metadata']['event_payload']['id']
+                        break
+    except SlackApiError as e:
+        logging.error(f'Fehler bei der Verbindung zu Slack {e}   ( ಠ ʖ̯ ಠ)')
+        pass
+    return latest_summery
+
 
 blogpost , post_id , title= get_last_blogpost(base_url, confluence_username, confluence_token)
 client = WebClient(token=slack_token)
@@ -143,8 +165,7 @@ if blogpost:
   logging.info("wird an OpenAI gesendet um eine Zusammenfassung zu erstellen. Bitte warten......")
 
   summary = generate_summary(statement, text, openai_api_key)
-  #Midjourney Prompt noch nicht implementiert
-  #prompt = generate_summary(statement_prompt, text, openai_api_key)
+
   if summary:
      logging.info(summary)
      logging.info(f'Zusammenfassung abgeschlossen （ ^_^）o自自o（^_^ ）')
