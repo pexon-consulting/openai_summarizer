@@ -18,13 +18,20 @@ openai_api_key = os.getenv('openai_api_key')
 slack_token = os.getenv('slack_token')
 channel = os.getenv('slack_channel')
 statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
-#Midjourney Prompt noch nicht implementiert
-#statement_prompt = f"Beschreibe mir ein simples Bild auf Englisch ohne Eigennamen welches die Keywords aus diesem Beitrag enthält mit maximal 150 Wörtern:"
+''''
+logging.basicConfig(
+    filename='script.log',
+    level=logging.INFO, 
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')'''
 
-logging.basicConfig(filename='script.log', level=logging.INFO, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    stream=sys.stdout, 
+    level=logging.INFO, 
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 def search_message_metadata(channel, id):
+    latest_summery=''
     try:
         # Calculate the timestamp for one month ago
         two_month_ago = datetime.now() - timedelta(days=60)
@@ -32,35 +39,28 @@ def search_message_metadata(channel, id):
 
         response = client.conversations_history(
             channel=channel,
-            include_metadata=True,
-            oldest=two_month_ago_timestamp
+            include_all_metadata=True,
+            #oldest=two_month_ago_timestamp
         )
         messages = response['messages']
-
-        # Search for the ID in the metadata of the messages
-        id_found = False
         for message in messages:
-            if 'metadata' in message and 'event_payload' in message['metadata']:
-                if message['metadata']['event_type'] == id:
-                    id_found = True
-                    break
-
-        if id_found:
-            logging.info(f'Bereits ausgeführt. ¯\_(ツ)_/¯')
-            sys.exit(1)
-
+            if 'metadata' in message and 'event_type' in message['metadata']:
+                if 'action_trigger' in message['metadata']['event_payload']:
+                    if message['metadata']['event_payload']['action_trigger'] == 'sheduled':
+                        latest_summery = message['metadata']['event_payload']['id']
+                        break
     except SlackApiError as e:
-        logging.error(f'Fehler bei der Verbindung zu Slack {e}   ( ಠ ʖ̯ ಠ)')
+        #logging.error(f'Fehler bei der Verbindung zu Slack {e}   ( ಠ ʖ̯ ಠ)')
+        print(f'Fehler bei der Verbindung zu Slack {e}   ( ಠ ʖ̯ ಠ)')
+        pass
+    return latest_summery
 
 def get_last_blogpost(url, username, token):
     api_url = f"{url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20lastmodified%20desc&limit=10&expand=body.storage.value"
-    #api_url2 = f"{url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20lastmodified%20desc&limit=1&expand=history"
 
     response = requests.get(api_url, auth=(username, token))
-    #response2 = requests.get(api_url2, auth=(username, token))
     if response.status_code == 200:
         data = response.json()
-        #data2 = response2.json()
         if 'results' in data and len(data['results']) > 0:
             blogpost = data['results'][0]
             title = data['results'][0]['title']
@@ -125,30 +125,6 @@ def send_message_to_slack(text, channel, id):
     except SlackApiError as e:
         logging.error(f"Fehler beim Senden der Nachricht an Slack: {e.response['error']}")
         sys.exit(1)
-
-def search_message_metadata(channel, id):
-    latest_summery=''
-    try:
-        # Calculate the timestamp for one month ago
-        two_month_ago = datetime.now() - timedelta(days=60)
-        two_month_ago_timestamp = two_month_ago.timestamp()
-
-        response = client.conversations_history(
-            channel=channel,
-            include_all_metadata=True,
-            #oldest=two_month_ago_timestamp
-        )
-        messages = response['messages']
-        for message in messages:
-            if 'metadata' in message and 'event_type' in message['metadata']:
-                if 'action_trigger' in message['metadata']['event_payload']:
-                    if message['metadata']['event_payload']['action_trigger'] == 'sheduled':
-                        latest_summery = message['metadata']['event_payload']['id']
-                        break
-    except SlackApiError as e:
-        logging.error(f'Fehler bei der Verbindung zu Slack {e}   ( ಠ ʖ̯ ಠ)')
-        pass
-    return latest_summery
 
 
 blogpost , post_id , title= get_last_blogpost(base_url, confluence_username, confluence_token)
