@@ -16,7 +16,7 @@ confluence_token = os.getenv('confluence_token')
 openai_api_key = os.getenv('openai_api_key')
 slack_token = os.getenv('slack_token')
 
-channel = os.getenv('slack_channel')
+slack_channel = os.getenv('slack_channel')
 statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
 
 
@@ -29,7 +29,7 @@ logging.basicConfig(
 
 slackClient = SlackClient(slack_token)
 confluenceClient = confluence.ConfluenceClient(confluence_base_url, confluence_username, confluence_token)
-last_slack_message = slackClient.get_last_summary_id(channel)
+last_slack_message = slackClient.get_last_summary_id(slack_channel)
 
 if last_slack_message != "":
     blogposts = confluenceClient.get_blogposts(20).results
