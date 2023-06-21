@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-base_url = os.getenv('base_url')
+confluence_base_url = os.getenv('base_url')
 confluence_username = os.getenv('confluence_username')
 confluence_token = os.getenv('confluence_token')
 openai_api_key = os.getenv('openai_api_key')
@@ -28,13 +28,12 @@ logging.basicConfig(
 )
 
 slackClient = SlackClient(slack_token)
-
-
+confluenceClient = confluence.ConfluenceClient(confluence_base_url, confluence_username, confluence_token)
 last_slack_message = slackClient.get_last_summary_id(channel)
 
 if last_slack_message != "":
-    blogposts = confluence.get_blogposts(base_url, confluence_username, confluence_token, 20).results
-    newer_blogposts = confluence.get_blogposts_newer_than_id(last_slack_message, blogposts)
+    blogposts = confluenceClient.get_blogposts(20).results
+    newer_blogposts = confluenceClient.get_blogposts_newer_than_id(last_slack_message, blogposts)
 
     if len(newer_blogposts) != 0:
         for post in newer_blogposts:
@@ -44,10 +43,6 @@ else:
     print("No scheduled messages found")
 
 print(last_slack_message)
-
-
-
-
 
 
 
