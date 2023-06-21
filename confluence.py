@@ -13,18 +13,6 @@ import slack
 
 load_dotenv()
 
-base_url = os.getenv('base_url')
-confluence_username = os.getenv('confluence_username')
-confluence_token = os.getenv('confluence_token')
-openai_api_key = os.getenv('openai_api_key')
-slack_token = os.getenv('slack_token')
-
-channel = os.getenv('slack_channel')
-statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
-
-
-
-
 class ConfluenceSearchResponse:
     def __init__(self, data):
         self.results = []

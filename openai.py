@@ -23,7 +23,7 @@ class OpenaiClient:
             summary = response['choices'][0]['text'].strip()
             return summary
         else:
-            logging.error(f'Fehler beim Senden an Slack. (╯°□°）╯︵ ┻━┻')
+            logging.error(f'Sending to OpenAI has faild. (╯°□°）╯︵ ┻━┻')
             sys.exit(1)
 
         return None
