@@ -55,9 +55,6 @@ class BlogPost:
         self._expandable = None
         self._links: ConfluenceLinks = None
 
-
-
-
 class ConfluenceClient: 
     def __init__(self, confluence_url, confluence_username, confluence_token) -> None:
         self.url = confluence_url
@@ -89,7 +86,7 @@ class ConfluenceClient:
         return search
 
 
-    def get_blogposts_newer_than_id(last_blogpost_id: str, blog_posts: list[BlogPost]) -> list[BlogPost]:
+    def get_blogposts_newer_than_id(self, last_blogpost_id: str, blog_posts: list[BlogPost]) -> list[BlogPost]:
         
         """
         Filters the provided blog posts to those that are newer than the provided ID.
