@@ -2,12 +2,13 @@
 import logging
 import sys
 import os
-import slack
+from slack import SlackClient
 import confluence
 import util
 import openai
 from dotenv import load_dotenv
 load_dotenv()
+
 
 base_url = os.getenv('base_url')
 confluence_username = os.getenv('confluence_username')
@@ -26,8 +27,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
+slackClient = SlackClient(slack_token)
 
-last_slack_message = slack.get_last_summary_id(channel)
+
+last_slack_message = slackClient.get_last_summary_id(channel)
 
 if last_slack_message != "":
     blogposts = confluence.get_blogposts(base_url, confluence_username, confluence_token, 20).results
