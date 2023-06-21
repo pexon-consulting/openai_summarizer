@@ -1,7 +1,7 @@
 # blogpost_zusammenfassung_automation
 
-
 ## Installation
+
 Container einfach auf gewünschter plattform Deployen.
 Dockerimage z.B mit folgendem Befehl bauen:
 
@@ -9,18 +9,26 @@ Dockerimage z.B mit folgendem Befehl bauen:
 docker build -t automation_blogpost ../blogpost_zusammenfassung_automation/
 ```
 
-
 ## Usage
+
 Es müssen einige Variablen gesetzt werden:
-```
-	- base_url					# https://pexon.atlassian.net/wiki
-	- confluence_username		# Confluence user der berechtigung zum lesen der Blogposts hat
-	- confluence_token			# API Token zum Confluence Service User
-	- openai_api_key			# OpenAI API Token
-	- slack_token				# Slackbot API Token
-	- slack_channel 			# zum Beispiel der Internal-Service-Test Channel (C05B0BRV4DA)
-	- CRON_SCHEDULE 			# standardmäßig wird '0 9-17 * * *' verwendet
-```
+
+| Variable            | Value                                              |
+| ------------------- | -------------------------------------------------- |
+| base_url            | base URL of your confluence instance               |
+| confluence_username | Confluence user with permission to read blog posts |
+| confluence_token    | API token of your confluence service user          |
+| openai_api_key      | OpenAI API key                                     |
+| slack_token         | Slackbot API token                                 |
+| slack_channel       | Slack channel ID                                   |
+
+
+
+This bot checks what blog post it last summarized, then checks if there are any new blog post since it's last summary. If so, it takes the content of the blog post from the Confluence API, and uses the ChatGPT API to create a short summary of it, and posts it along with a link to the blog post into the configured slack channel. 
+
+
+
+
 
 es werden unter /apps/logs zwei Logs erstellt. <br>
 einmal das script.log .<br>
@@ -30,7 +38,6 @@ Diese Datei wird benutzt um zu vergleichen ob der letzte Blogpost bereits zusamm
 Darin werden die ID's der Confluenceseiten geschrieben, welche bereits zusammengefasst wurden. Damit soll Spam vermieden werden.<br>
 Diese Dateien sollten bestmöglich in einem persistenten Volume gespeichert werden. Am wichtigsten ist jedoch die history.txt .<br>
 
-
 ## Support
-Bei Fragen oder Verbesserungsvoschläge könnt ihr mich einfach anschreiben
 
+Bei Fragen oder Verbesserungsvoschläge könnt ihr mich einfach anschreiben
