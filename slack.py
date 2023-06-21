@@ -29,7 +29,7 @@ class SlackClient:
                             break
                             
         except SlackApiError as e:
-            logging.error(f"Failed to connect to Slack.")
+            logging.error(f"Failed to connect to Slack.  щ（ﾟДﾟщ）")
             logging.error(f"{e}")
             sys.exit(1)
         return last_summary_id
@@ -50,7 +50,7 @@ class SlackClient:
             )
             
         except SlackApiError as e:
-            logging.error(f"Error sending message to Slack:")
+            logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
             logging.error(f"{e.response['error']}")
             sys.exit(1)
 
