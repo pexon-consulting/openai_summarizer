@@ -4,19 +4,17 @@ import sys
 import os
 from slack import SlackClient
 import confluence
-import util
-import openai
 from dotenv import load_dotenv
 load_dotenv()
 
 
-confluence_base_url = os.getenv('base_url')
-confluence_username = os.getenv('confluence_username')
-confluence_token = os.getenv('confluence_token')
-openai_api_key = os.getenv('openai_api_key')
-slack_token = os.getenv('slack_token')
+confluence_base_url = os.getenv('BASE_URL')
+confluence_username = os.getenv('CONFLUENCE_USERNAME')
+confluence_token = os.getenv('CONFLUENCE_TOKEN')
+openai_api_key = os.getenv('OPENAI_API_KEY')
+slack_token = os.getenv('SLACK_TOKEN')
 
-slack_channel = os.getenv('slack_channel')
+slack_channel = os.getenv('SLACK_CHANNEL')
 statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
 
 
