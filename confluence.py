@@ -22,17 +22,7 @@ slack_token = os.getenv('slack_token')
 channel = os.getenv('slack_channel')
 statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
 
-''''
-logging.basicConfig(
-    filename='script.log',
-    level=logging.INFO, 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')'''
 
-logging.basicConfig(
-    stream=sys.stdout, 
-    level=logging.INFO, 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 
 
 class ConfluenceSearchResponse:
