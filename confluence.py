@@ -11,25 +11,14 @@ class ConfluenceSearchResponse:
         self.start = data.get("start")
         self.limit = data.get("limit")
         self.size = data.get("size")
-        self.base = data["_links"].get("base")
-        self.context = data["_links"].get("context")
+        self.cql = data.get("cql")
+        self.totalSize = data.get("totalSize")
+        self.searchDurationMillis = data.get("searchDurationMillis")
         self.self_link = data["_links"].get("self")
 
-        print(data["results"][0])
-
         for result in data["results"]:
-            result_obj = BlogPost()
-            result_obj.id = result.get("id")
-            result_obj.type = result.get("type")
-            result_obj.status = result.get("status")
-            result_obj.title = result.get("title")
-            result_obj.childTypes = result.get("childTypes")
-            result_obj.macroRenderedOutput = result.get("macroRenderedOutput")
-            result_obj.restrictions = result.get("restrictions")
-            result_obj._expandable = result.get("_expandable")
-            result_obj._links = ConfluenceLinks(result.get("_links"))
-            result_obj.body = Body(**result.get("body"))
-            self.results.append(result_obj)
+            self.results.append(BlogPost(result))
+
 
 class ConfluenceLinks:
     def __init__(self, links_data):
@@ -37,44 +26,42 @@ class ConfluenceLinks:
         self.tinyui: str = links_data.get("tinyui")
         self.editui: str = links_data.get("editui")
         self.webui: str = links_data.get("webui")
+        self.version: str = links_data.get("version")
+
 
 class Storage:
-    def __init__(self, value, representation, _expandable):
-        self.value = value
-        self.representation = representation
-        self._expandable = _expandable
+    def __init__(self, storage_data):
+        self.value = storage_data.get("value")
+        self.representation = storage_data.get("representation")
+        self._expandable = storage_data.get("_expandable")
+
 
 class Body:
-    def __init__(self, storage, _expandable):
-        self.storage = Storage(**storage)
-        self._expandable = _expandable
+    def __init__(self, body_data):
+        self.storage = Storage(body_data.get("storage"))
+        self._expandable = body_data.get("_expandable")
+
 
 class BlogPost:
-    def __init__(self):
-        self.id: str = None
-        self.type = None
-        self.status = None
-        self.title = None
-        self.childTypes = None
-        self.macroRenderedOutput = None
-        self.restrictions = None
-        self._expandable = None
-        self._links: ConfluenceLinks = None
-        self.body: Body = None
+    def __init__(self, data):
+        self.id: str = data.get("id")
+        self.type = data.get("type")
+        self.status = data.get("status")
+        self.title = data.get("title")
+        self.extensions = data.get("extensions")
+        self.restrictions = data.get("restrictions")
+        self.version = data.get("version")
+        self.metadata = data.get("metadata")
+        self.operations = data.get("operations")
+        self._links = ConfluenceLinks(data.get("_links"))
+        self._expandable = data.get("_expandable")
+        self.body: Body = Body(data.get("body"))
 
     def extract_text(self):
-        # Create a BeautifulSoup object with the HTML content
-
-        soup = BeautifulSoup(self.body, 'html.parser')
-
-        # Extract all text from the HTML document
+        soup = BeautifulSoup(self.body.storage.value, 'html.parser')
         text = soup.get_text()
 
         return text
-
-        # Request was not successful, return None
-        return None
-
 
 
 class ConfluenceClient: 
