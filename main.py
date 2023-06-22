@@ -2,7 +2,7 @@
 import logging
 import sys
 import os
-from slack import SlackClient
+from slack_client import SlackClient
 import confluence
 from openai_summarizer import OpenaiClient
 from dotenv import load_dotenv
@@ -55,13 +55,13 @@ if debug:
     blogposts = confluenceClient.get_blogposts(1).results
     extracted_text = blogposts[0].extract_text()
     post_id = blogposts[0].id
-    logging.info(f'Text from blogpost with id {post_id}')
+    logging.info(f"Text from blogpost with id {post_id}")
     logging.info(extracted_text)
     summary = openai_client.generate_summary(statement, extracted_text)
-    logging.info(f'Sumary from blogpost with id {post_id}:')
+    logging.info(f"Sumary from blogpost with id {post_id}:")
     logging.info(summary)
 
-logging.info('last ID in Slack: '+last_slack_message)
+logging.info("last ID in Slack: " + last_slack_message)
 
 
 # slack.search_message_metadata(channel)
