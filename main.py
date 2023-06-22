@@ -31,6 +31,8 @@ last_slack_message = slackClient.get_last_summary_id(slack_channel)
 
 if last_slack_message != "":
     blogposts = confluenceClient.get_blogposts(20).results
+
+    print(blogposts[0].body.storage.value)
     newer_blogposts = confluenceClient.get_blogposts_newer_than_id(last_slack_message, blogposts)
 
     if len(newer_blogposts) != 0:
