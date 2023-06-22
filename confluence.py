@@ -1,27 +1,21 @@
 import requests
-import openai
-import sys
-import os
-import json
 import logging
-from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
-import slack
 
 load_dotenv()
 
 class ConfluenceSearchResponse:
     def __init__(self, data):
-        self.results = []
+        self.results: list[BlogPost] = []
         self.start = data.get("start")
         self.limit = data.get("limit")
         self.size = data.get("size")
         self.base = data["_links"].get("base")
         self.context = data["_links"].get("context")
         self.self_link = data["_links"].get("self")
+
+        print(data["results"][0])
 
         for result in data["results"]:
             result_obj = BlogPost()
@@ -34,6 +28,7 @@ class ConfluenceSearchResponse:
             result_obj.restrictions = result.get("restrictions")
             result_obj._expandable = result.get("_expandable")
             result_obj._links = ConfluenceLinks(result.get("_links"))
+            result_obj.body = Body(**result.get("body"))
             self.results.append(result_obj)
 
 class ConfluenceLinks:
@@ -42,6 +37,17 @@ class ConfluenceLinks:
         self.tinyui: str = links_data.get("tinyui")
         self.editui: str = links_data.get("editui")
         self.webui: str = links_data.get("webui")
+
+class Storage:
+    def __init__(self, value, representation, _expandable):
+        self.value = value
+        self.representation = representation
+        self._expandable = _expandable
+
+class Body:
+    def __init__(self, storage, _expandable):
+        self.storage = Storage(**storage)
+        self._expandable = _expandable
 
 class BlogPost:
     def __init__(self):
@@ -54,6 +60,22 @@ class BlogPost:
         self.restrictions = None
         self._expandable = None
         self._links: ConfluenceLinks = None
+        self.body: Body = None
+
+    def extract_text(self):
+        # Create a BeautifulSoup object with the HTML content
+
+        soup = BeautifulSoup(self.body, 'html.parser')
+
+        # Extract all text from the HTML document
+        text = soup.get_text()
+
+        return text
+
+        # Request was not successful, return None
+        return None
+
+
 
 class ConfluenceClient: 
     def __init__(self, confluence_url, confluence_username, confluence_token) -> None:
@@ -111,6 +133,10 @@ class ConfluenceClient:
 
         logging.info(f'Found {len(newer_posts)} blog posts since last summary')
         return newer_posts
+
+
+
+
 
 
     # def get_last_blogpost(url, username, token):
