@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class ConfluenceSearchResponse:
     def __init__(self, data):
         self.results: list[BlogPost] = []
@@ -58,13 +59,13 @@ class BlogPost:
         self.body: Body = Body(data.get("body"))
 
     def extract_text(self):
-        soup = BeautifulSoup(self.body.storage.value, 'html.parser')
+        soup = BeautifulSoup(self.body.storage.value, "html.parser")
         text = soup.get_text()
 
         return text
 
 
-class ConfluenceClient: 
+class ConfluenceClient:
     def __init__(self, confluence_url, confluence_username, confluence_token) -> None:
         self.url = confluence_url
         self.username = confluence_username
@@ -86,17 +87,16 @@ class ConfluenceClient:
             The response from the Confluence API represented as a ConfluenceSearchResponse object.
         """
 
-
         api_url = f"{self.url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20created%20desc&limit={limit}&expand=body.storage"
         response = requests.get(api_url, auth=(self.username, self.token))
 
         search = ConfluenceSearchResponse(response.json())
-        logging.info(f'Retrieved {len(search.results)} blog posts')
+        logging.info(f"Retrieved {len(search.results)} blog posts")
         return search
 
-
-    def get_blogposts_newer_than_id(self, last_blogpost_id: str, blog_posts: list[BlogPost]) -> list[BlogPost]:
-        
+    def get_blogposts_newer_than_id(
+        self, last_blogpost_id: str, blog_posts: list[BlogPost]
+    ) -> list[BlogPost]:
         """
         Filters the provided blog posts to those that are newer than the provided ID.
 
@@ -118,13 +118,8 @@ class ConfluenceClient:
                 break
             newer_posts.append(post)
 
-        logging.info(f'Found {len(newer_posts)} blog posts since last summary')
+        logging.info(f"Found {len(newer_posts)} blog posts since last summary")
         return newer_posts
-
-
-
-
-
 
     # def get_last_blogpost(url, username, token):
     #     api_url = f"{url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20lastmodified%20desc&limit=20&expand=body.storage.value"
@@ -148,5 +143,3 @@ class ConfluenceClient:
     # blogpost , post_id , title, post_url= get_last_blogpost(base_url, confluence_username, confluence_token)
     # get_last_blogpost(base_url, confluence_username, confluence_token)
     # print(f"<{base_url}{post_url}|*{title}*>")
-
-
