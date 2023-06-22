@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from enum import Enum
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class SlackClient:
                 metadata = message["metadata"]
                 event_payload = metadata.get("event_payload", {})
 
-                if event_payload.get("action_trigger") == ActionTrigger.SCHEDULED:
+                if event_payload.get("action_trigger") == "sheduled":
                     last_summary_id = event_payload.get("id")
                     break
 
@@ -68,29 +69,42 @@ class SlackClient:
                 channel=channel,
                 text=text,
                 metadata={
-                    "event_type": MessageType.BLOGPOST_SUMMARY,
+                    "event_type": MessageType.BLOGPOST_SUMMARY.value,
                     "event_payload": {
                         "id": blogpost_id,
-                        "action_trigger": ActionTrigger.SCHEDULED,
+                        "action_trigger": ActionTrigger.SCHEDULED.value,
                     },
                 },
             )
+
+            if 200 <= response.status_code < 300:
+                logger.info(
+                    f"Successfully sent Slack { MessageType.BLOGPOST_SUMMARY.value } message with blogpost_id: {blogpost_id}"
+                )
 
         except SlackApiError as e:
             logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
             logging.error(f"{e.response['error']}")
             sys.exit(1)
 
-    def send_message(self, text, channel, id):
+    def send_message_notification(self, text: str, channel: str):
         try:
+            message_uuid = uuid4()
+
             response = self.client.chat_postMessage(
                 channel=channel,
                 text=text,
                 metadata={
-                    "event_type": "confluence_id",
-                    "event_payload": {"id": id, "action_trigger": "sheduled"},
+                    "event_type": MessageType.NOTIFICATION.value,
+                    "event_payload": {
+                        "id": str(message_uuid),
+                        "action_trigger": ActionTrigger.SCHEDULED.value,
+                    },
                 },
             )
+
+            if 200 <= response.status_code < 300:
+                logger.info(f"Successfully sent Slack message with id: {message_uuid}")
 
         except SlackApiError as e:
             logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
