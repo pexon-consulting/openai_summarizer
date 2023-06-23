@@ -23,7 +23,7 @@ debug = os.getenv("DEBUG")
 
 requested_blogpost_id = os.getenv("REQUESTED_BLOGPOST_ID")
 
-statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
+blogpost_summary_statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ openai_client = OpenaiClient(openai_api_key)
 def send_initial_summary():
     blogpost = confluenceClient.get_blogpost(requested_blogpost_id)
     summary = openai_client.generate_summary_confluence(
-        statement, blogpost.extract_text()
+        blogpost_summary_statement, blogpost.extract_text()
     )
     logging.info(f"Summary from blogpost with id {blogpost.id}:")
 
@@ -63,7 +63,9 @@ def test_function():
     extracted_text = blogpost.extract_text()
     logging.info(f"Text from blogpost with id {blogpost.id}")
     logging.info(extracted_text)
-    summary = openai_client.generate_summary_confluence(statement, extracted_text)
+    summary = openai_client.generate_summary_confluence(
+        blogpost_summary_statement, extracted_text
+    )
     logging.info(f"Summary from blogpost with id {blogpost.id}:")
     logging.info(summary)
 
@@ -114,7 +116,7 @@ def summarize_newest_blogposts():
                 logging.info(post.title)
 
                 summary = openai_client.generate_summary_confluence(
-                    statement, post.extract_text()
+                    blogpost_summary_statement, post.extract_text()
                 )
 
                 slackClient.send_message_confluence_summary(
