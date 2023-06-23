@@ -2,13 +2,16 @@
 import logging
 import sys
 import os
+
+sys.path.append("client_modules")
+
 from slack_client import SlackClient, ActionTrigger
 import confluence
 from openai_summarizer import OpenaiClient
+
 from dotenv import load_dotenv
 
 load_dotenv()
-
 
 confluence_base_url = os.getenv("BASE_URL")
 confluence_username = os.getenv("CONFLUENCE_USERNAME")
