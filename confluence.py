@@ -1,9 +1,9 @@
 import requests
+import sys
 import logging
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 
-load_dotenv()
+logging.getLogger(__name__)
 
 
 class ConfluenceSearchResponse:
@@ -72,6 +72,23 @@ class ConfluenceClient:
         self.token = confluence_token
         pass
 
+    def get_blogpost(self, blogpost_id) -> BlogPost:
+        logging.info(f"Getting blogpost with id {blogpost_id}")
+        api_url = f"{self.url}/rest/api/content/{blogpost_id}?expand=body.storage"
+        response = requests.get(api_url, auth=(self.username, self.token))
+
+        if 200 <= response.status_code < 300:
+            logging.info(f"Getting blogpost with id {blogpost_id} successful")
+            return BlogPost(response.json())
+
+        else:
+            logging.error("Error retrieving blogpost:")
+            logging.error(response.json())
+            sys.exit(1)
+
+        # result = ConfluenceSearchResponse(response.json())
+        # logging.info(f"Retrieved {len(search.results)} blog posts")
+
     def get_blogposts(self, limit) -> ConfluenceSearchResponse:
         """
         Retrieves a number of blog posts from the Confluence API.
@@ -87,6 +104,7 @@ class ConfluenceClient:
             The response from the Confluence API represented as a ConfluenceSearchResponse object.
         """
 
+        logging.info(f"Getting latest {limit} blogposts")
         api_url = f"{self.url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20created%20desc&limit={limit}&expand=body.storage"
         response = requests.get(api_url, auth=(self.username, self.token))
 
@@ -112,6 +130,7 @@ class ConfluenceClient:
         list[BlogPost]
             A list of blog posts that are newer than the provided ID.
         """
+
         newer_posts = []
         for post in blog_posts:
             if post.id == str(last_blogpost_id):
