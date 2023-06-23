@@ -5,6 +5,7 @@ from slack_sdk.errors import SlackApiError
 from enum import Enum
 from uuid import uuid4
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +25,7 @@ class MessageMetadata:
         self.event_payload: str
 
 
-class SlackMessage:
+class SummaryMessage:
     def __init__(self, channel, text, metadata) -> None:
         self.channel: str = channel
         self.text: str = text
@@ -46,13 +47,17 @@ class SlackClient:
             messages = response["messages"]
 
             for message in messages:
-                if "metadata" not in message or "event_type" not in message["metadata"]:
+                if (
+                    "metadata" not in message
+                    or MessageType.BLOGPOST_SUMMARY.value
+                    != message["metadata"]["event_type"]
+                ):
                     continue
 
                 metadata = message["metadata"]
                 event_payload = metadata.get("event_payload", {})
 
-                if event_payload.get("action_trigger") == "sheduled":
+                if event_payload.get("action_trigger") == ActionTrigger.SCHEDULED.value:
                     last_summary_id = event_payload.get("id")
                     break
 
@@ -62,16 +67,44 @@ class SlackClient:
             sys.exit(1)
         return last_summary_id
 
-    def send_message_confluence_summary(self, text, channel, blogpost_id):
+    def send_message_confluence_summary(
+        self,
+        summary,
+        title,
+        channel,
+        blogpost_url,
+        blogpost_id,
+        actiontrigger,
+    ):
         try:
+            blocks = [
+                {"type": "header", "text": {"type": "plain_text", "text": title}},
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f"*Summary*\n { summary }"},
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "Open blog post"},
+                            "url": blogpost_url,
+                        }
+                    ],
+                },
+            ]
+
+            print(blocks)
+
             response = self.client.chat_postMessage(
                 channel=channel,
-                text=text,
+                blocks=blocks,
                 metadata={
                     "event_type": MessageType.BLOGPOST_SUMMARY.value,
                     "event_payload": {
                         "id": blogpost_id,
-                        "action_trigger": ActionTrigger.SCHEDULED.value,
+                        "action_trigger": actiontrigger,
                     },
                 },
             )
