@@ -3,11 +3,9 @@ import logging
 import sys
 import os
 
-sys.path.append("client_modules")
-
-from slack_client import SlackClient, ActionTrigger
-import confluence
-from openai_summarizer import OpenaiClient
+import client_modules.confluence as confluence
+from client_modules.slack_client import SlackClient, ActionTrigger
+from client_modules.openai_summarizer import OpenaiClient
 
 from dotenv import load_dotenv
 

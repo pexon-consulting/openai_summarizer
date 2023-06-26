@@ -262,9 +262,6 @@ class ConfluenceClient:
             logging.error(response.json())
             sys.exit(1)
 
-        # result = ConfluenceSearchResponse(response.json())
-        # logging.info(f"Retrieved {len(search.results)} blog posts")
-
     def get_blogposts(self, limit) -> ConfluenceSearchResponse:
         """
         Retrieves a number of blog posts from the Confluence API.
@@ -316,25 +313,38 @@ class ConfluenceClient:
         logging.info(f"Found {len(newer_posts)} blog posts since last summary")
         return newer_posts
 
-    # def get_last_blogpost(url, username, token):
-    #     api_url = f"{url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20lastmodified%20desc&limit=20&expand=body.storage.value"
+    def get_last_blogpost(self) -> BlogPost:
+        """
+        Fetches the last blog post from a specified API endpoint. The API endpoint
+        is determined by 'self.url' attribute of the class instance. The method
+        sends a GET request to the API and expects a status code 200 for a
+        successful request. If the request is successful, it returns the last
+        blog post as a 'BlogPost' object. If the request fails, it logs an error
+        message with the received status code and terminates the program with
+        a status code of 1.
 
-    #     response = requests.get(api_url, auth=(username, token))
-    #     if response.status_code == 200:
-    #         data = response.json()
-    #         if 'results' in data and len(data['results']) > 0:
-    #             blogpost = data['results'][0]
-    #             title = data['results'][0]['title']
-    #             post_id = data['results'][0]['id']
-    #             post_url = data['results'][0]['_links']['webui']
+        Returns
+        -------
+        latest_blogpost : BlogPost
+            The last blog post retrieved from the API.
 
-    #             return blogpost, post_id, title, post_url
-    #     else:
-    #         logging.error(f'Fehler beim Abrufen des letzten Blogposts. Statuscode: {response.status_code} (╯°□°）╯︵ ┻━┻')
-    #         sys.exit(1)
+        Raises
+        ------
+        SystemExit
+            If the API request fails (i.e., if it doesn't return a 200 status code).
+        """
+        api_url = f"{self.url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20lastmodified%20desc&limit=20&expand=body.storage.value"
 
-    #     return None
+        response = requests.get(api_url, auth=(self.username, self.token))
+        if response.status_code == 200:
+            search = ConfluenceSearchResponse(response.json())
+            latest_blogpost: BlogPost = search.results[0]
 
-    # blogpost , post_id , title, post_url= get_last_blogpost(base_url, confluence_username, confluence_token)
-    # get_last_blogpost(base_url, confluence_username, confluence_token)
-    # print(f"<{base_url}{post_url}|*{title}*>")
+            return latest_blogpost
+
+        else:
+            logging.error(
+                f"Fehler beim Abrufen des letzten Blogposts. Statuscode: {response.status_code} (╯°□°）╯︵ ┻━┻"
+            )
+
+            sys.exit(1)
