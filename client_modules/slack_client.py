@@ -95,8 +95,6 @@ class SlackClient:
                 },
             ]
 
-            print(blocks)
-
             response = self.client.chat_postMessage(
                 channel=channel,
                 blocks=blocks,
