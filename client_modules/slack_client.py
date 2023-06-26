@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class MessageType(Enum):
-     """
+    """
     Enum representing the different types of messages.
 
     Attributes
