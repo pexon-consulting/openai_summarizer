@@ -10,22 +10,64 @@ logger = logging.getLogger(__name__)
 
 
 class MessageType(Enum):
+     """
+    Enum representing the different types of messages.
+
+    Attributes
+    ----------
+    BLOGPOST_SUMMARY : str
+        Represents a summary of a blogpost.
+    NOTIFICATION : str
+        Represents a notification.
+    """
     BLOGPOST_SUMMARY: str = "blogpost_summary"
     NOTIFICATION: str = "notification"
 
 
 class ActionTrigger(Enum):
+    """
+    Enum representing the different triggers for an action.
+
+    Attributes
+    ----------
+    SCHEDULED : str
+        Represents an action that is triggered based on a schedule.
+    REQUESTED : str
+        Represents an action that is triggered based on a request.
+    """
     SCHEDULED: str = "scheduled"
     REQUESTED: str = "requested"
 
 
 class MessageMetadata:
+    """
+    Class to hold metadata for a message.
+
+    Attributes
+    ----------
+    event_type : MessageType
+        The type of the event that triggered the message.
+    event_payload : str
+        Additional information about the event.
+    """
     def __init__(self) -> None:
         self.event_type: MessageType
         self.event_payload: str
 
 
 class SummaryMessage:
+    """
+    Class to represent a summary message.
+
+    Attributes
+    ----------
+    channel : str
+        The channel where the summary message is to be sent.
+    text : str
+        The content of the summary message.
+    metadata : MessageMetadata
+        The metadata associated with the summary message.
+    """
     def __init__(self, channel, text, metadata) -> None:
         self.channel: str = channel
         self.text: str = text
@@ -33,10 +75,31 @@ class SummaryMessage:
 
 
 class SlackClient:
+    """
+    A client for interacting with Slack.
+
+    Attributes
+    ----------
+    client : WebClient
+        WebClient object for Slack API interaction.
+    """
     def __init__(self, slack_token: str) -> None:
         self.client: WebClient = WebClient(token=slack_token)
 
     def get_last_summary_id(self, channel) -> str:
+        """
+        Fetches the id of the last summary from the specified channel.
+
+        Parameters
+        ----------
+        channel : str
+            The channel to fetch the last summary id from.
+
+        Returns
+        -------
+        str
+            The id of the last summary. If no summary is found, returns an empty string.
+        """
         last_summary_id = ""
         try:
             response = self.client.conversations_history(
@@ -75,7 +138,26 @@ class SlackClient:
         blogpost_url,
         blogpost_id,
         actiontrigger,
+        
     ):
+        """
+        Sends a message to the specified channel containing the summary of a confluence post.
+
+        Parameters
+        ----------
+        summary : str
+            The summary of the confluence post.
+        title : str
+            The title of the confluence post.
+        channel : str
+            The channel to send the message to.
+        blogpost_url : str
+            The URL of the blogpost.
+        blogpost_id : str
+            The ID of the blogpost.
+        actiontrigger : str
+            The action trigger for the event.
+        """
         try:
             blocks = [
                 {"type": "header", "text": {"type": "plain_text", "text": title}},
@@ -118,6 +200,16 @@ class SlackClient:
             sys.exit(1)
 
     def send_message_notification(self, text: str, channel: str):
+        """
+        Sends a notification message to the specified channel.
+
+        Parameters
+        ----------
+        text : str
+            The text of the notification.
+        channel : str
+            The channel to send the notification to.
+        """
         try:
             message_uuid = uuid4()
 
