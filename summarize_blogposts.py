@@ -42,6 +42,10 @@ openai_client = OpenaiClient(openai_api_key)
 
 
 def send_initial_summary():
+    """
+    Fetches a specific blogpost from Confluence, generates a summary using OpenAI, and posts the summary to Slack.
+    The blogpost ID, blogpost summary statement, Slack channel, and Confluence base URL are assumed to be globally defined.
+    """
     blogpost = confluenceClient.get_blogpost(requested_blogpost_id)
     summary = openai_client.generate_summary_confluence(
         blogpost_summary_statement, blogpost.extract_text()
@@ -59,6 +63,15 @@ def send_initial_summary():
 
 
 def test_function():
+    """
+    Function for testing the process of getting a blogpost, extracting text, generating a summary, and sending the summary to Slack. 
+    It first fetches a blogpost, logs its extracted text, generates a summary using OpenAI, logs the summary, and then sends the summary to Slack.
+    It also fetches the ID of the last summary sent to Slack. 
+    If a summary exists, it retrieves a list of 20 blogposts and checks if there are newer blogposts than the last summary. 
+    If newer blogposts exist, their titles are logged.
+    If no previous summary is found, it logs an error message.
+    The required constants (like slack_channel, confluence_base_url, and blogpost_summary_statement) are assumed to be globally defined.
+    """
     blogpost = confluenceClient.get_blogposts(1).results[0]
     extracted_text = blogpost.extract_text()
     logging.info(f"Text from blogpost with id {blogpost.id}")
@@ -98,6 +111,15 @@ def test_function():
 
 
 def summarize_newest_blogposts():
+    """
+    Function to fetch and summarize the newest blogposts on Confluence and post the summaries to Slack.
+    
+    It first fetches the ID of the last summary sent to Slack. If a summary exists, it retrieves a list of 20 blogposts and checks if there are 
+    newer blogposts than the last summary. If newer blogposts exist, it logs their IDs and titles, generates a summary using OpenAI, and then sends 
+    the summary to Slack. It logs an info message after each summary is sent. If no previous summary is found, it logs an error message.
+    
+    The required constants (like slack_channel, confluence_base_url, and blogpost_summary_statement) are assumed to be globally defined.
+    """
     last_slack_message = slackClient.get_last_summary_id(slack_channel)
     logging.info("last ID in Slack: " + last_slack_message)
 
