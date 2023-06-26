@@ -1,5 +1,5 @@
-requests
-openai
-beautifulsoup4
-slack_sdk
-python-dotenv
+requests==2.31.0
+openai==0.27.7
+beautifulsoup4==4.12.2
+slack_sdk==3.21.3
+python-dotenv==1.0.0
