@@ -7,9 +7,40 @@ logging.getLogger(__name__)
 
 
 class ConfluenceSearchResponse:
+    """
+    A class to represent a Confluence search response.
+    
+    Attributes
+    ----------
+    results : list[BlogPost]
+        A list containing BlogPost objects.
+    start : int
+        The starting point of the search.
+    limit : int
+        The limit to the number of search results.
+    size : int
+        The actual size of the search results.
+    cql : str
+        The CQL (Confluence Query Language) query used for the search.
+    totalSize : int
+        The total size of the search result.
+    searchDurationMillis : int
+        The time taken for the search in milliseconds.
+    self_link : str
+        The link to the search result.
+    """
+    
     def __init__(self, data):
-        self.results: list[BlogPost] = []  # results: Test
-        self.start = data.get("start")
+        """
+        Constructs all the necessary attributes for the ConfluenceSearchResponse object.
+
+        Parameters
+        ----------
+        data : dict
+            The search response data from the Confluence API.
+        """
+        self.results: list[BlogPost] = []
+        self.start = data.get("start") #    start : int The starting point of the search
         self.limit = data.get("limit")
         self.size = data.get("size")
         self.cql = data.get("cql")
@@ -22,7 +53,31 @@ class ConfluenceSearchResponse:
 
 
 class ConfluenceLinks:
+    """
+    A class to represent the links related to a Confluence content entity.
+
+    Attributes
+    ----------
+    self_link : str
+        The URL to the content entity itself.
+    tinyui : str
+        The URL to the tiny (shortened) UI view of the content entity.
+    editui : str
+        The URL to the edit UI view of the content entity.
+    webui : str
+        The URL to the web UI view of the content entity.
+    version : str
+        The URL to the version of the content entity.
+    """
     def __init__(self, links_data):
+        """
+        Constructs all the necessary attributes for the ConfluenceLinks object.
+
+        Parameters
+        ----------
+        links_data : dict
+            The links data from the Confluence API.
+        """
         self.self_link: str = links_data.get("self")
         self.tinyui: str = links_data.get("tinyui")
         self.editui: str = links_data.get("editui")
@@ -31,20 +86,96 @@ class ConfluenceLinks:
 
 
 class Storage:
+    """
+    A class to represent the storage format of a Confluence content entity's body.
+
+    Attributes
+    ----------
+    value : str
+        The HTML representation of the body content.
+    representation : str
+        The type of the representation (usually 'storage').
+    _expandable : dict
+        The expandable fields for the storage object.
+    """
     def __init__(self, storage_data):
+        """
+        Constructs all the necessary attributes for the Storage object.
+
+        Parameters
+        ----------
+        storage_data : dict
+            The storage data from the Confluence API.
+        """
         self.value = storage_data.get("value")
         self.representation = storage_data.get("representation")
         self._expandable = storage_data.get("_expandable")
 
 
 class Body:
+    """
+    A class to represent the body of a Confluence content entity.
+
+    Attributes
+    ----------
+    storage : Storage
+        The storage format of the body content.
+    _expandable : dict
+        The expandable fields for the body object.
+    """
     def __init__(self, body_data):
+        """
+        Constructs all the necessary attributes for the Body object.
+
+        Parameters
+        ----------
+        body_data : dict
+            The body data from the Confluence API.
+        """
         self.storage = Storage(body_data.get("storage"))
         self._expandable = body_data.get("_expandable")
 
 
 class BlogPost:
+    """
+    A class to represent a BlogPost in Confluence.
+
+    Attributes
+    ----------
+    id : str
+        The ID of the blog post.
+    type : str
+        The type of the content entity (usually 'blogpost').
+    status : str
+        The status of the blog post (usually 'current').
+    title : str
+        The title of the blog post.
+    extensions : dict
+        Any extensions related to the blog post.
+    restrictions : dict
+        Any restrictions applied to the blog post.
+    version : dict
+        The version information of the blog post.
+    metadata : dict
+        The metadata of the blog post.
+    operations : list
+        A list of operations related to the blog post.
+    _links : ConfluenceLinks
+        The links related to the blog post.
+    _expandable : dict
+        The expandable fields for the blog post.
+    body : Body
+        The body of the blog post.
+    """
     def __init__(self, data):
+        """
+        Constructs all the necessary attributes for the BlogPost object.
+
+        Parameters
+        ----------
+        data : dict
+            The blog post data from the Confluence API.
+        """
         self.id: str = data.get("id")
         self.type = data.get("type")
         self.status = data.get("status")
@@ -59,6 +190,14 @@ class BlogPost:
         self.body: Body = Body(data.get("body"))
 
     def extract_text(self):
+        """
+        Extracts the text from the body of the blog post.
+
+        Returns
+        -------
+        str
+            The extracted text.
+        """
         soup = BeautifulSoup(self.body.storage.value, "html.parser")
         text = soup.get_text()
 
@@ -66,13 +205,50 @@ class BlogPost:
 
 
 class ConfluenceClient:
+    """
+    A class that handles interactions with the Confluence API.
+    
+    Attributes
+    ----------
+    url : str
+        The base URL for the Confluence instance.
+    username : str
+        The username for authentication with the Confluence instance.
+    token : str
+        The API token for authentication with the Confluence instance.
+    """
     def __init__(self, confluence_url, confluence_username, confluence_token) -> None:
+        """
+        Initializes the ConfluenceClient with the necessary authentication and URL details.
+
+        Parameters
+        ----------
+        confluence_url : str
+            The base URL for the Confluence instance.
+        confluence_username : str
+            The username for authentication with the Confluence instance.
+        confluence_token : str
+            The API token for authentication with the Confluence instance.
+        """
         self.url = confluence_url
         self.username = confluence_username
         self.token = confluence_token
         pass
 
     def get_blogpost(self, blogpost_id) -> BlogPost:
+        """
+        Retrieves a specific blog post from the Confluence instance.
+        
+        Parameters
+        ----------
+        blogpost_id : str
+            The ID of the blogpost to retrieve.
+        
+        Returns
+        -------
+        BlogPost
+            The retrieved BlogPost object. 
+        """
         logging.info(f"Getting blogpost with id {blogpost_id}")
         api_url = f"{self.url}/rest/api/content/{blogpost_id}?expand=body.storage"
         response = requests.get(api_url, auth=(self.username, self.token))
