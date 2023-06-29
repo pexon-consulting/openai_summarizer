@@ -17,11 +17,11 @@ confluence_token = os.getenv("CONFLUENCE_TOKEN")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 slack_token = os.getenv("SLACK_TOKEN")
 slack_channel = os.getenv("SLACK_CHANNEL")
+openai_statement = os.getenv("OPENAI_STATEMENT")
 debug = os.getenv("DEBUG")
-
 requested_blogpost_id = os.getenv("REQUESTED_BLOGPOST_ID")
 
-blogpost_summary_statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
+default_blogpost_summary_statement = f'Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints zusammen. Überschriften sollen mit einfachen "*" am anfang und ende großgeschrieben sein. Fange an mit "TL;DR:":'
 
 
 logger = logging.getLogger(__name__)
@@ -153,6 +153,10 @@ def summarize_newest_blogposts():
     else:
         logging.error("No scheduled messages found")
 
+if openai_statement:
+    blogpost_summary_statement = openai_statement
+else:
+    blogpost_summary_statement = default_blogpost_summary_statement
 
 if requested_blogpost_id:
     send_initial_summary()
