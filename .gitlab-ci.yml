@@ -79,17 +79,11 @@ deploy latest prod to gcp:
 
 terraform fmt:
     stage: validate
-    rules:
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
     needs: [ ]
     extends: .terraform:fmt
 
 terraform validate:
     stage: validate
-    rules:
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
     needs: [ ]
     extends: .terraform:validate
 
