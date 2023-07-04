@@ -18,7 +18,6 @@ resource "google_cloud_run_v2_job" "default" {
     template {
       containers {
         image = "${var.location}-docker.pkg.dev/${var.project}/${var.container_registry_name}-${var.environment}/${var.image_name}:${var.image_tag}"
-        env = merge(var.env_vars, local.secret_env_vars)
 
         dynamic "env" {
           for_each = var.env_vars
@@ -29,10 +28,15 @@ resource "google_cloud_run_v2_job" "default" {
         }
 
         dynamic "env" {
-          for_each = local.secret_env_vars
+          for_each = var.secret_env_vars
           content {
             name = env.value["name"]
-            value_source = env.value["value_source"]
+            value_source {
+              secret_key_ref {
+                secret = env.value["key_ref"]
+                version = tostring(env.value["version"])
+              }
+            }
           }
         }
       }
