@@ -86,8 +86,6 @@ terraform build dev:
     stage: deploy
     rules:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-          when: never
     needs:
         - deploy latest dev to gcp
     before_script:
@@ -107,8 +105,6 @@ terraform deploy dev:
     stage: deploy
     rules:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-          when: never
     needs:
         - terraform build dev
     extends: .terraform:deploy
