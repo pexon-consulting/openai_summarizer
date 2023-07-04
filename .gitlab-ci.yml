@@ -1,7 +1,4 @@
 stages:
-    - documentation
-    - validate
-    - test
     - build
     - release
     - deploy
@@ -26,7 +23,6 @@ build:
     rules:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
-          when: manual
     script:
         - >-
             /kaniko/executor
@@ -53,6 +49,7 @@ deploy latest dev to gcp:
         - job: build
     rules:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
+          when: manual
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
           when: never
     image:
