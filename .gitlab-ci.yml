@@ -94,9 +94,9 @@ terraform build dev:
         - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
         - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS_DEV | base64 -d)
     extends: .terraform:build
-    script:
-        - gitlab-terraform plan -var-file=./variables.dev.tfvars
-        - gitlab-terraform plan-json
+    # script:
+    #     - gitlab-terraform plan -var-file=./variables.dev.tfvars
+    #     - gitlab-terraform plan-json
 
     artifacts:
         paths:
