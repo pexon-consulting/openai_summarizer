@@ -20,7 +20,7 @@ resource "google_cloud_run_v2_job" "default" {
     template {
       containers {
         image = "${var.location}-docker.pkg.dev/${var.project}/${var.container_registry_name}-${var.environment}/${var.image_name}:${var.image_tag}"
-        env_vars = merge(var.env_vars, local.secret_env_vars)
+        env = merge(var.env_vars, local.secret_env_vars)
       }
     }
   }
