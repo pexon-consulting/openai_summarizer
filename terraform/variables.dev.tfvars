@@ -1,5 +1,5 @@
 environment             = "dev"
-project                 = "pexon-internal-services"
+project                 = "pexon-internal-services-dev"
 instance_name           = "openai"
 container_registry_name = "openai"
 image_name              = "api"
