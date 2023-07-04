@@ -94,7 +94,6 @@ terraform build dev:
         - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
         - export TF_CLI_ARGS="-var-file=./variables.dev.tfvars"
         - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS_DEV | base64 -d)
-        - cd $TF_ROOT
     extends: .terraform:build
     artifacts:
         paths:
@@ -114,7 +113,6 @@ terraform deploy dev:
         - export TF_STATE_FILE_NAME=dev
         - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
         - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS_DEV | base64 -d)
-        - cd $TF_ROOT
     dependencies:
         - terraform build dev
     environment:
