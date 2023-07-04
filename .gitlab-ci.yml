@@ -88,6 +88,8 @@ terraform build dev:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
           when: never
+    needs:
+        - deploy latest dev to gcp
     before_script:
         - export TF_VAR_image_tag=$CI_COMMIT_SHA
         - export TF_STATE_FILE_NAME=dev
@@ -126,6 +128,8 @@ terraform build prod:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
           when: never
+    needs:
+        - deploy latest prod to gcp
     before_script:
         - export TF_VAR_image_tag=latest
         - export TF_STATE_FILE_NAME=default
