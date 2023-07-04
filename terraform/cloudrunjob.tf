@@ -40,6 +40,8 @@ resource "google_cloud_run_v2_job" "default" {
           }
         }
       }
+
+      service_account = data.google_service_account.cloud_run_deployer.email
     }
   }
 
