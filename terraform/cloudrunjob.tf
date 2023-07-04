@@ -11,8 +11,8 @@ locals {
 }
 
 resource "google_cloud_run_v2_job" "default" {
-  name     = "openai-${var.environment}"
-  location = "europe-west3"
+  name     = "${var.instance_name}-${var.environment}"
+  location = var.location
 
   template {
     template {
