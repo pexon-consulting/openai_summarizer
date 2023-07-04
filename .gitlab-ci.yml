@@ -21,9 +21,6 @@ build:
     before_script:
         - mkdir -p /kaniko/.docker
         - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    rules:
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
     script:
         - >-
             /kaniko/executor
@@ -51,8 +48,6 @@ deploy latest dev to gcp:
     rules:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
           when: manual
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
-          when: never
     image:
         name: gcr.io/go-containerregistry/crane:debug
         entrypoint: [ "" ]
@@ -91,8 +86,6 @@ terraform build dev:
     stage: deploy
     rules:
         - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH != "main"
-        - if: $CI_PROJECT_NAMESPACE == "aron.schneider/openai_summarizer" && $CI_COMMIT_BRANCH == "main"
-          when: never
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
           when: never
     before_script:
