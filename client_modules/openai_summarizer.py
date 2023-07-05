@@ -29,19 +29,19 @@ class OpenaiClient:
 
     def chatCompletion(self, system_message: str, text: str) -> str:
         """
-        Generates a summary using OpenAI's GPT-3 model based on the provided statement and text.
+        Generates a conversation using OpenAI's GPT-3.5 model based on the provided system message and user input.
 
         Parameters
         ----------
-        statement : str
-            The initial statement to start the summary with.
+        system_message : str
+            The initial message given by the system to set the context of the conversation.
         text : str
-            The text to summarize.
+            The user input text to interact with the AI model.
 
         Returns
         -------
         str
-            The generated summary.
+            The generated response from the AI model.
         """
         messages = [
             {"role": "system", "content": f"{system_message}"},
@@ -50,7 +50,7 @@ class OpenaiClient:
 
         logging.info("Started openAI summary request")
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k",
             messages=messages,
             max_tokens=500,
             n=1,
