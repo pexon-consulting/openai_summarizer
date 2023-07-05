@@ -20,8 +20,10 @@ class MessageType(Enum):
     NOTIFICATION : str
         Represents a notification.
     """
+
     BLOGPOST_SUMMARY: str = "blogpost_summary"
     NOTIFICATION: str = "notification"
+    AZURE_BLOGPOST: str = "azure_blogpost"
 
 
 class ActionTrigger(Enum):
@@ -35,6 +37,7 @@ class ActionTrigger(Enum):
     REQUESTED : str
         Represents an action that is triggered based on a request.
     """
+
     SCHEDULED: str = "scheduled"
     REQUESTED: str = "requested"
 
@@ -50,6 +53,7 @@ class MessageMetadata:
     event_payload : str
         Additional information about the event.
     """
+
     def __init__(self) -> None:
         self.event_type: MessageType
         self.event_payload: str
@@ -68,6 +72,7 @@ class SummaryMessage:
     metadata : MessageMetadata
         The metadata associated with the summary message.
     """
+
     def __init__(self, channel, text, metadata) -> None:
         self.channel: str = channel
         self.text: str = text
@@ -83,6 +88,7 @@ class SlackClient:
     client : WebClient
         WebClient object for Slack API interaction.
     """
+
     def __init__(self, slack_token: str) -> None:
         self.client: WebClient = WebClient(token=slack_token)
 
@@ -138,7 +144,6 @@ class SlackClient:
         blogpost_url,
         blogpost_id,
         actiontrigger,
-        
     ):
         """
         Sends a message to the specified channel containing the summary of a confluence post.
@@ -232,3 +237,91 @@ class SlackClient:
             logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
             logging.error(f"{e.response['error']}")
             sys.exit(1)
+
+    def send_azure_blogpost_summary(
+        self, title: str, summary: str, link: str, channel: str, date_published: str
+    ):
+        try:
+            message_uuid = uuid4()
+
+            blocks = [
+                {"type": "header", "text": {"type": "plain_text", "text": title}},
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f"{ summary }"},
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "Open azure update"},
+                            "url": link,
+                        }
+                    ],
+                },
+            ]
+
+            response = self.client.chat_postMessage(
+                channel=channel,
+                blocks=blocks,
+                text="Azure posted a new Update!",
+                metadata={
+                    "event_type": MessageType.AZURE_BLOGPOST.value,
+                    "event_payload": {
+                        "id": str(message_uuid),
+                        "action_trigger": ActionTrigger.SCHEDULED.value,
+                        "date_published": date_published,
+                    },
+                },
+            )
+
+            if 200 <= response.status_code < 300:
+                logger.info(f"Successfully sent Slack message with id: {message_uuid}")
+
+        except SlackApiError as e:
+            logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
+            logging.error(f"{e.response['error']}")
+            sys.exit(1)
+
+    def get_last_azure_summary_date(self, channel) -> str:
+        """
+        Fetches the id of the last summary from the specified channel.
+
+        Parameters
+        ----------
+        channel : str
+            The channel to fetch the last summary id from.
+
+        Returns
+        -------
+        str
+            The id of the last summary. If no summary is found, returns an empty string.
+        """
+        last_summary_date = ""
+        try:
+            response = self.client.conversations_history(
+                channel=channel,
+                include_all_metadata=True,
+            )
+
+            messages = response["messages"]
+
+            for message in messages:
+                if (
+                    "metadata" not in message
+                    or message["metadata"]["event_type"]
+                    != MessageType.AZURE_BLOGPOST.value
+                ):
+                    continue
+
+                metadata = message["metadata"]
+                event_payload = metadata.get("event_payload", {})
+
+                last_summary_date = event_payload.get("azure_date_published")
+
+        except SlackApiError as e:
+            logging.error(f"Failed to connect to Slack.  щ（ﾟДﾟщ）")
+            logging.error(f"{e}")
+            sys.exit(1)
+        return last_summary_date
