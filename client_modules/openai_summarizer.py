@@ -26,6 +26,35 @@ class OpenaiClient:
         self.api_key = openai_api_key
         openai.api_key = self.api_key
 
+    def chatCompletion(self, system_message: str, text: str) -> str:
+        """
+        Generates a conversation using OpenAI's GPT-3.5 model based on the provided system message and user input.
+
+        This function uses the "gpt-3.5-turbo-16k" model. The system message sets up the initial context of the 
+        conversation, and the user message acts as an interaction with the model.
+
+        The function logs the beginning and end of the OpenAI request. If the OpenAI API call is successful, 
+        the function extracts the first choice's message content as the generated response.
+
+        Parameters
+        ----------
+        system_message : str
+            The initial message given by the system to set the context of the conversation.
+        text : str
+            The user input text to interact with the AI model.
+
+        Returns
+        -------
+        str
+            The generated response from the AI model. If the OpenAI API call fails, an error is logged and the 
+            program is terminated.
+
+        Raises
+        ------
+        SystemExit
+            If the OpenAI API call does not return a choice, the function logs an error and terminates the program.
+        """
+
     def generate_summary_confluence(self, statement: str, text: str) -> str:
         """
         Generates a summary using OpenAI's GPT-3 model based on the provided statement and text.
