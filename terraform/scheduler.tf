@@ -1,7 +1,7 @@
 resource "google_cloud_scheduler_job" "job" {
   name             = "openai-${var.environment}-scheduler-trigger"
   description      = "Trigger Cloud Run job to execute OpenAI Blog Post Bot"
-  schedule         = "15 10 * * *"
+  schedule         = "30 * * * *"
   region = var.location
   time_zone        = "CET"
   attempt_deadline = "320s"

@@ -46,8 +46,7 @@ deploy latest dev to gcp:
     needs:
         - job: build
     rules:
-        - if: $CI_COMMIT_BRANCH != "main"
-          when: manual
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH != "main"
     image:
         name: gcr.io/go-containerregistry/crane:debug
         entrypoint: [ "" ]
@@ -62,7 +61,7 @@ deploy latest prod to gcp:
     needs:
         - job: build
     rules:
-        - if: $CI_COMMIT_BRANCH == "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "main"
     image:
         name: gcr.io/go-containerregistry/crane:debug
         entrypoint: [ "" ]
@@ -85,7 +84,7 @@ terraform validate:
 terraform build dev:
     stage: deploy
     rules:
-        - if: $CI_COMMIT_BRANCH != "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH != "main"
     needs:
         - deploy latest dev to gcp
     before_script:
@@ -97,7 +96,6 @@ terraform build dev:
     script:
         - gitlab-terraform plan -var-file=./variables.dev.tfvars
         - gitlab-terraform plan-json
-
     artifacts:
         paths:
             - terraform/files/*
@@ -107,7 +105,7 @@ terraform build dev:
 terraform deploy dev:
     stage: deploy
     rules:
-        - if: $CI_COMMIT_BRANCH != "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH != "main"
     needs:
         - terraform build dev
     extends: .terraform:deploy
@@ -124,7 +122,7 @@ terraform deploy dev:
 terraform build prod:
     stage: deploy
     rules:
-        - if: $CI_COMMIT_BRANCH == "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "main"
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
           when: never
     needs:
@@ -140,7 +138,7 @@ terraform build prod:
 terraform deploy prod:
     stage: deploy
     rules:
-        - if: $CI_COMMIT_BRANCH == "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "main"
         - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
           when: never
     needs:
