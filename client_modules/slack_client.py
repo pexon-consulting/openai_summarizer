@@ -4,10 +4,9 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from enum import Enum
 from uuid import uuid4
-
+from typing import List
 
 logger = logging.getLogger(__name__)
-
 
 class MessageType(Enum):
     """
@@ -20,6 +19,7 @@ class MessageType(Enum):
     NOTIFICATION : str
         Represents a notification.
     """
+
     BLOGPOST_SUMMARY: str = "blogpost_summary"
     NOTIFICATION: str = "notification"
 
@@ -35,6 +35,7 @@ class ActionTrigger(Enum):
     REQUESTED : str
         Represents an action that is triggered based on a request.
     """
+
     SCHEDULED: str = "scheduled"
     REQUESTED: str = "requested"
 
@@ -50,6 +51,7 @@ class MessageMetadata:
     event_payload : str
         Additional information about the event.
     """
+
     def __init__(self) -> None:
         self.event_type: MessageType
         self.event_payload: str
@@ -68,6 +70,7 @@ class SummaryMessage:
     metadata : MessageMetadata
         The metadata associated with the summary message.
     """
+
     def __init__(self, channel, text, metadata) -> None:
         self.channel: str = channel
         self.text: str = text
@@ -83,6 +86,7 @@ class SlackClient:
     client : WebClient
         WebClient object for Slack API interaction.
     """
+
     def __init__(self, slack_token: str) -> None:
         self.client: WebClient = WebClient(token=slack_token)
 
@@ -138,7 +142,6 @@ class SlackClient:
         blogpost_url,
         blogpost_id,
         actiontrigger,
-        
     ):
         """
         Sends a message to the specified channel containing the summary of a confluence post.
@@ -158,13 +161,25 @@ class SlackClient:
         actiontrigger : str
             The action trigger for the event.
         """
+        block_sections = []
+
+        sections = split_sections_by_blank_lines(summary)
+        for section in sections:
+            block_sections.append({
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"{ section }"},
+            })
+            
         try:
             blocks = [
                 {"type": "header", "text": {"type": "plain_text", "text": title}},
                 {
                     "type": "section",
-                    "text": {"type": "mrkdwn", "text": f"*Summary*\n { summary }"},
+                    "text": {"type": "mrkdwn", "text": f"*TL;DR:*"},
                 },
+            ]
+            blocks.extend(block_sections)
+            blocks.append(
                 {
                     "type": "actions",
                     "elements": [
@@ -175,8 +190,11 @@ class SlackClient:
                         }
                     ],
                 },
-            ]
+            )
 
+            logging.debug("Blocks:")
+            logging.debug(blocks)
+            logging.debug("Blocks:")
             response = self.client.chat_postMessage(
                 channel=channel,
                 blocks=blocks,
@@ -199,36 +217,21 @@ class SlackClient:
             logging.error(f"{e.response['error']}")
             sys.exit(1)
 
-    def send_message_notification(self, text: str, channel: str):
-        """
-        Sends a notification message to the specified channel.
+def split_sections_by_blank_lines(text):
+    """
+    Splits a given text into sections based on blank lines.
 
-        Parameters
-        ----------
-        text : str
-            The text of the notification.
-        channel : str
-            The channel to send the notification to.
-        """
-        try:
-            message_uuid = uuid4()
+    This function splits the input text into sections wherever it finds one or more blank lines. The blank lines act as delimiters 
+    between different sections of the text.
 
-            response = self.client.chat_postMessage(
-                channel=channel,
-                text=text,
-                metadata={
-                    "event_type": MessageType.NOTIFICATION.value,
-                    "event_payload": {
-                        "id": str(message_uuid),
-                        "action_trigger": ActionTrigger.SCHEDULED.value,
-                    },
-                },
-            )
+    Parameters
+    ----------
+    text : str
+        The input text to be split into sections.
 
-            if 200 <= response.status_code < 300:
-                logger.info(f"Successfully sent Slack message with id: {message_uuid}")
-
-        except SlackApiError as e:
-            logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
-            logging.error(f"{e.response['error']}")
-            sys.exit(1)
+    Returns
+    -------
+    List[str]
+        A list of text sections extracted from the input. Each item in the list represents a distinct section from the input text.
+    """
+    return [section for section in text.split('\n\n')]
