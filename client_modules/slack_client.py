@@ -144,22 +144,33 @@ class SlackClient:
         actiontrigger,
     ):
         """
-        Sends a message to the specified channel containing the summary of a confluence post.
+        Sends a structured message to a specified Slack channel, summarizing a Confluence post.
+
+        The message contains sections split by blank lines from the summary, a header with the post title,
+        and a button linking to the original post. If the message sending fails, an error is logged and the
+        program is terminated.
 
         Parameters
         ----------
         summary : str
-            The summary of the confluence post.
+            The summary of the Confluence post.
         title : str
-            The title of the confluence post.
+            The title of the Confluence post.
         channel : str
-            The channel to send the message to.
+            The Slack channel to send the message to.
         blogpost_url : str
-            The URL of the blogpost.
+            The URL of the Confluence post.
         blogpost_id : str
-            The ID of the blogpost.
+            The ID of the Confluence post.
         actiontrigger : str
-            The action trigger for the event.
+            The action that triggered the sending of the message.
+
+        Raises
+        ------
+        SlackApiError
+            If there's an error when sending the message to the Slack channel.
+        SystemExit
+            If there's an error when sending the message to the Slack channel, after logging the error, the program is terminated.
         """
         block_sections = []
 
