@@ -54,6 +54,29 @@ class OpenaiClient:
         SystemExit
             If the OpenAI API call does not return a choice, the function logs an error and terminates the program.
         """
+        messages = [
+            {"role": "system", "content": f"{system_message}"},
+            {"role": "user", "content": f"{text}"},
+        ]
+
+        logging.info("Started openAI summary request")
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-16k",
+            messages=messages,
+            max_tokens=1000,
+            n=1,
+            stop=None,
+            temperature=0.8,
+        )
+
+        logging.info("openAI summary request done")
+
+        if "choices" in response and len(response["choices"]) > 0:
+            summary = response["choices"][0]["message"]["content"].strip()
+            return summary
+        else:
+            logging.error(f"Sending to OpenAI has failed. (╯°□°）╯︵ ┻━┻")
+            sys.exit(1)
 
     def generate_summary_confluence(self, statement: str, text: str) -> str:
         """
