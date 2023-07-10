@@ -66,7 +66,7 @@ class OpenaiClient:
             max_tokens=1000,
             n=1,
             stop=None,
-            temperature=0.8,
+            temperature=0.3,
         )
 
         logging.info("openAI summary request done")
