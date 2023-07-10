@@ -6,8 +6,15 @@ To initialize the bot, you need to make an initial run with the `INITIAL_BLOGPOS
 
 The default prompt we are using to generate Confluence summaries is:
 
-```Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints zusammen. 
-Die nachricht sollte für slack formatiert sein.  Nutze für bulletpoints immer ein "-" am anfang der zeile. Übernimm Überschriften der sektionen, und formatiere sie fett, in dem du sie zwischen * packst, wie in diesem beispiel: *Hallo Welt* 
+'''Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints zusammen. 
+Die nachricht sollte für slack formatiert sein.  Nutze für bulletpoints immer ein "-" am anfang der zeile. Übernimm Überschriften der sektionen, und formatiere sie fett, in dem du sie zwischen * packst, wie in diesem beispiel: *Hallo Welt*
+
+Das Ergebnis sollte so aussehen
+
+*Überschrift*
+- Bulletpoint
+- Bulletpoint
+- Bulletpoint 
 ```
 
 ![](img/demo.gif)

@@ -22,7 +22,15 @@ debug = os.getenv("DEBUG")
 requested_blogpost_id = os.getenv("REQUESTED_BLOGPOST_ID")
 
 default_blogpost_summary_statement = '''Du bist Pexon und erstellst eine lockere Zusammenfassung. Fasse folgenden Text in maximal 150 Wörtern und Bulletpoints zusammen. 
-Die nachricht sollte für slack formatiert sein.  Nutze für bulletpoints immer ein "-" am anfang der zeile. Übernimm Überschriften der sektionen, und formatiere sie fett, in dem du sie zwischen * packst, wie in diesem beispiel: *Hallo Welt*'''
+Die nachricht sollte für slack formatiert sein.  Nutze für bulletpoints immer ein "-" am anfang der zeile. Übernimm Überschriften der sektionen, und formatiere sie fett, in dem du sie zwischen * packst, wie in diesem beispiel: *Hallo Welt*
+
+Das ergebnis sollte so aussehen
+
+*Überschrift*
+- Bulletpoint
+- Bulletpoint
+- Bulletpoint
+'''
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -53,7 +61,7 @@ def send_initial_summary():
 
     logging.info(
         f"""Summary:  
-                 {summary}"""
+{summary}"""
     )
 
     slackClient.send_message_confluence_summary(
