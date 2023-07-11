@@ -4,10 +4,9 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from enum import Enum
 from uuid import uuid4
-
+from typing import List
 
 logger = logging.getLogger(__name__)
-
 
 class MessageType(Enum):
     """
@@ -146,30 +145,53 @@ class SlackClient:
         actiontrigger,
     ):
         """
-        Sends a message to the specified channel containing the summary of a confluence post.
+        Sends a structured message to a specified Slack channel, summarizing a Confluence post.
+
+        The message contains sections split by blank lines from the summary, a header with the post title,
+        and a button linking to the original post. If the message sending fails, an error is logged and the
+        program is terminated.
 
         Parameters
         ----------
         summary : str
-            The summary of the confluence post.
+            The summary of the Confluence post.
         title : str
-            The title of the confluence post.
+            The title of the Confluence post.
         channel : str
-            The channel to send the message to.
+            The Slack channel to send the message to.
         blogpost_url : str
-            The URL of the blogpost.
+            The URL of the Confluence post.
         blogpost_id : str
-            The ID of the blogpost.
+            The ID of the Confluence post.
         actiontrigger : str
-            The action trigger for the event.
+            The action that triggered the sending of the message.
+
+        Raises
+        ------
+        SlackApiError
+            If there's an error when sending the message to the Slack channel.
+        SystemExit
+            If there's an error when sending the message to the Slack channel, after logging the error, the program is terminated.
         """
+        block_sections = []
+
+        sections = split_sections_by_blank_lines(summary)
+        for section in sections:
+            block_sections.append({
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"{ section }"},
+            })
+            
         try:
             blocks = [
                 {"type": "header", "text": {"type": "plain_text", "text": title}},
                 {
                     "type": "section",
-                    "text": {"type": "mrkdwn", "text": f"*Summary*\n { summary }"},
+                    "text": {"type": "mrkdwn", "text": f"*TL;DR:*"},
                 },
+            ]
+            blocks.extend(block_sections)
+            blocks.append(
                 {
                     "type": "actions",
                     "elements": [
@@ -180,8 +202,11 @@ class SlackClient:
                         }
                     ],
                 },
-            ]
+            )
 
+            logging.debug("Blocks:")
+            logging.debug(blocks)
+            logging.debug("Blocks:")
             response = self.client.chat_postMessage(
                 channel=channel,
                 blocks=blocks,
@@ -204,9 +229,12 @@ class SlackClient:
             logging.error(f"{e.response['error']}")
             sys.exit(1)
 
-    def send_message_notification(self, text: str, channel: str):
-        """
-        Sends a notification message to the specified channel.
+def split_sections_by_blank_lines(text):
+    """
+    Splits a given text into sections based on blank lines.
+
+    This function splits the input text into sections wherever it finds one or more blank lines. The blank lines act as delimiters 
+    between different sections of the text.
 
         Parameters
         ----------
@@ -226,52 +254,6 @@ class SlackClient:
                     "event_payload": {
                         "id": str(message_uuid),
                         "action_trigger": ActionTrigger.SCHEDULED.value,
-                    },
-                },
-            )
-
-            if 200 <= response.status_code < 300:
-                logger.info(f"Successfully sent Slack message with id: {message_uuid}")
-
-        except SlackApiError as e:
-            logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
-            logging.error(f"{e.response['error']}")
-            sys.exit(1)
-
-    def send_azure_blogpost_summary(
-        self, title: str, summary: str, link: str, channel: str, date_published: str
-    ):
-        try:
-            message_uuid = uuid4()
-
-            blocks = [
-                {"type": "header", "text": {"type": "plain_text", "text": title}},
-                {
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": f"{ summary }"},
-                },
-                {
-                    "type": "actions",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "text": {"type": "plain_text", "text": "Open azure update"},
-                            "url": link,
-                        }
-                    ],
-                },
-            ]
-
-            response = self.client.chat_postMessage(
-                channel=channel,
-                blocks=blocks,
-                text="Azure posted a new Update!",
-                metadata={
-                    "event_type": MessageType.AZURE_BLOGPOST.value,
-                    "event_payload": {
-                        "id": str(message_uuid),
-                        "action_trigger": ActionTrigger.SCHEDULED.value,
-                        "date_published": date_published,
                     },
                 },
             )

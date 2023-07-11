@@ -31,6 +31,12 @@ class OpenaiClient:
         """
         Generates a conversation using OpenAI's GPT-3.5 model based on the provided system message and user input.
 
+        This function uses the "gpt-3.5-turbo-16k" model. The system message sets up the initial context of the
+        conversation, and the user message acts as an interaction with the model.
+
+        The function logs the beginning and end of the OpenAI request. If the OpenAI API call is successful,
+        the function extracts the first choice's message content as the generated response.
+
         Parameters
         ----------
         system_message : str
@@ -41,7 +47,13 @@ class OpenaiClient:
         Returns
         -------
         str
-            The generated response from the AI model.
+            The generated response from the AI model. If the OpenAI API call fails, an error is logged and the
+            program is terminated.
+
+        Raises
+        ------
+        SystemExit
+            If the OpenAI API call does not return a choice, the function logs an error and terminates the program.
         """
         messages = [
             {"role": "system", "content": f"{system_message}"},
@@ -52,10 +64,10 @@ class OpenaiClient:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             messages=messages,
-            max_tokens=500,
+            max_tokens=1000,
             n=1,
             stop=None,
-            temperature=0.8,
+            temperature=0.1,
         )
 
         logging.info("openAI summary request done")
@@ -92,7 +104,7 @@ class OpenaiClient:
             max_tokens=500,
             n=1,
             stop=None,
-            temperature=0.3,
+            temperature=0.8,
         )
 
         logging.info("openAI summary request done")
