@@ -46,7 +46,7 @@ deploy latest dev to gcp:
     needs:
         - job: build
     rules:
-        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH != "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "dev"
     image:
         name: gcr.io/go-containerregistry/crane:debug
         entrypoint: [ "" ]
@@ -84,7 +84,7 @@ terraform validate:
 terraform build dev:
     stage: deploy
     rules:
-        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH != "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "dev"
     needs:
         - deploy latest dev to gcp
     before_script:
@@ -105,7 +105,7 @@ terraform build dev:
 terraform deploy dev:
     stage: deploy
     rules:
-        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH != "main"
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "dev"
     needs:
         - terraform build dev
     extends: .terraform:deploy
