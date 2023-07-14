@@ -64,16 +64,17 @@ class OpenaiClient:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             messages=messages,
-            max_tokens=1000,
+            max_tokens=2000,
             n=1,
             stop=None,
-            temperature=0.1,
+            temperature=0,
         )
 
         logging.info("openAI summary request done")
 
         if "choices" in response and len(response["choices"]) > 0:
             summary = response["choices"][0]["message"]["content"].strip()
+            logging.info(response["usage"])
             return summary
         else:
             logging.error(f"Sending to OpenAI has failed. (╯°□°）╯︵ ┻━┻")

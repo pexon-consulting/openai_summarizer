@@ -1,8 +1,14 @@
-import feedparser
+from collections import defaultdict
 from typing import List
+
+import feedparser
 import requests
 from bs4 import BeautifulSoup
 from dateutil import parser
+
+import logging
+
+logging.getLogger(__name__)
 
 
 class FeedItem:
@@ -144,14 +150,40 @@ class FeedChannel:
         self.generator = generator
         self.items: List[FeedItem] = []  # List of FeedItem objects
 
+    def group_by_day(self):
+        """
+        Groups the feed items in the channel by day.
+
+        The function populates a `groups` attribute in the channel object. The `groups` attribute is a dictionary where the keys are dates and the values are lists of FeedItem objects corresponding to that date.
+        """
+        groups = defaultdict(list)
+
+        for item in self.items:
+            # If 'pub_date' is already a date object
+            date = item.parsed_date
+
+            # Convert the datetime object to a date only (no time)
+            date = date.date()
+
+            # Add the item to the appropriate day group
+            groups[date].append(item)
+
+        # Return the groups, converted to a list of lists
+        self.groups = groups
+
     def add_item(self, item):
         """
-        Adds a feed item to the feed channel.
+        Adds a FeedItem object to the FeedChannel's items list.
 
         Parameters
         ----------
         item : FeedItem
-            The feed item to add.
+            The feed item to be added.
+
+        Raises
+        ------
+        TypeError
+            If the provided item is not an instance of FeedItem class.
         """
         if isinstance(item, FeedItem):
             self.items.append(item)
@@ -212,5 +244,9 @@ def create_channel(feed_url) -> FeedChannel:
             num_comments=getattr(entry, "slash_comments", "N/A"),
         )
         channel.add_item(item)
+
+    logging.info(f"Found { len(channel.items) } Azure blog posts")
+
+    channel.group_by_day()
 
     return channel

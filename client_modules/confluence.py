@@ -9,7 +9,7 @@ logging.getLogger(__name__)
 class ConfluenceSearchResponse:
     """
     A class to represent a Confluence search response.
-    
+
     Attributes
     ----------
     results : list[BlogPost]
@@ -29,7 +29,7 @@ class ConfluenceSearchResponse:
     self_link : str
         The link to the search result.
     """
-    
+
     def __init__(self, data):
         """
         Constructs all the necessary attributes for the ConfluenceSearchResponse object.
@@ -40,7 +40,9 @@ class ConfluenceSearchResponse:
             The search response data from the Confluence API.
         """
         self.results: list[BlogPost] = []
-        self.start = data.get("start") #    start : int The starting point of the search
+        self.start = data.get(
+            "start"
+        )  #    start : int The starting point of the search
         self.limit = data.get("limit")
         self.size = data.get("size")
         self.cql = data.get("cql")
@@ -69,6 +71,7 @@ class ConfluenceLinks:
     version : str
         The URL to the version of the content entity.
     """
+
     def __init__(self, links_data):
         """
         Constructs all the necessary attributes for the ConfluenceLinks object.
@@ -98,6 +101,7 @@ class Storage:
     _expandable : dict
         The expandable fields for the storage object.
     """
+
     def __init__(self, storage_data):
         """
         Constructs all the necessary attributes for the Storage object.
@@ -123,6 +127,7 @@ class Body:
     _expandable : dict
         The expandable fields for the body object.
     """
+
     def __init__(self, body_data):
         """
         Constructs all the necessary attributes for the Body object.
@@ -167,6 +172,7 @@ class BlogPost:
     body : Body
         The body of the blog post.
     """
+
     def __init__(self, data):
         """
         Constructs all the necessary attributes for the BlogPost object.
@@ -207,7 +213,7 @@ class BlogPost:
 class ConfluenceClient:
     """
     A class that handles interactions with the Confluence API.
-    
+
     Attributes
     ----------
     url : str
@@ -217,6 +223,7 @@ class ConfluenceClient:
     token : str
         The API token for authentication with the Confluence instance.
     """
+
     def __init__(self, confluence_url, confluence_username, confluence_token) -> None:
         """
         Initializes the ConfluenceClient with the necessary authentication and URL details.
@@ -238,16 +245,16 @@ class ConfluenceClient:
     def get_blogpost(self, blogpost_id) -> BlogPost:
         """
         Retrieves a specific blog post from the Confluence instance.
-        
+
         Parameters
         ----------
         blogpost_id : str
             The ID of the blogpost to retrieve.
-        
+
         Returns
         -------
         BlogPost
-            The retrieved BlogPost object. 
+            The retrieved BlogPost object.
         """
         logging.info(f"Getting blogpost with id {blogpost_id}")
         api_url = f"{self.url}/rest/api/content/{blogpost_id}?expand=body.storage"
