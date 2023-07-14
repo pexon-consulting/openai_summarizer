@@ -18,6 +18,10 @@ env_vars = [
     name  = "SLACK_CHANNEL",
     value = "C05B0BRV4DA"
   },
+  {
+    name  = "MODE",
+    value = "CONFLUENCE"
+  },
 ]
 
 secret_env_vars = [
