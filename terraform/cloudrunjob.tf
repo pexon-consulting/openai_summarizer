@@ -11,7 +11,8 @@ locals {
 }
 
 resource "google_cloud_run_v2_job" "default" {
-  name     = "${var.instance_name}-${var.environment}"
+  for_each = var.instances
+  name     = "${each.value.name}-${var.environment}"
   location = var.location
 
   template {
@@ -20,7 +21,7 @@ resource "google_cloud_run_v2_job" "default" {
         image = "${var.location}-docker.pkg.dev/${var.project}/${var.container_registry_name}-${var.environment}/${var.image_name}:${var.image_tag}"
 
         dynamic "env" {
-          for_each = var.env_vars
+          for_each = concat(var.env_vars, each.value.env_vars) 
           content {
             name = env.value["name"]
             value = env.value["value"]

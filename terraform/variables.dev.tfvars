@@ -5,6 +5,35 @@ container_registry_name = "openai"
 image_name              = "api"
 cloud_run_service_account_email = "cloud-run-deploymer@pexon-internal-services-dev.iam.gserviceaccount.com"
 
+instances = [
+  {
+    name = "confluence"
+    env_vars = [ 
+      {
+        name  = "MODE",
+        value = "CONFLUENCE"
+      },
+      {
+        name  = "SLACK_CHANNEL",
+        value = "C05B0BRV4DA"
+      },
+    ]
+  },
+  {
+    name = "azure"
+    env_vars = [ 
+      {
+        name  = "MODE",
+        value = "AZURE"
+      },
+      {
+        name  = "SLACK_CHANNEL",
+        value = "C05B0BRV4DA"
+      },
+    ]
+  }
+]
+
 env_vars = [
   {
     name  = "BASE_URL",
@@ -13,15 +42,7 @@ env_vars = [
   {
     name  = "CONFLUENCE_USERNAME",
     value = "pexon-automation01@pexon-consulting.de"
-  },
-  {
-    name  = "SLACK_CHANNEL",
-    value = "C05B0BRV4DA"
-  },
-  {
-    name  = "MODE",
-    value = "CONFLUENCE"
-  },
+  }
 ]
 
 secret_env_vars = [

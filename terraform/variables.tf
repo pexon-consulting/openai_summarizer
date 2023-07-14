@@ -8,11 +8,6 @@ variable "environment" {
   description = "prod or dev"
 }
 
-variable "instance_name" {
-  type        = string
-  description = "Cloud Run instance name"
-}
-
 variable "location" {
   type        = string
   description = "Cloud Run location"
@@ -59,6 +54,16 @@ variable "secret_env_vars" {
     version = number
   }))
   default = []
+}
+
+variable "instances" {
+  type = list(object({
+    name = string
+    env_vars = list(object({
+      name  = string
+      value = string
+    }))
+  }))
 }
 
 variable "cloud_run_service_account_email" {
