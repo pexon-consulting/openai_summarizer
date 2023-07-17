@@ -15,7 +15,7 @@ instances = [
       },
       {
         name  = "SLACK_CHANNEL",
-        value = "C05B0BRV4DA"
+        value = "C02G0S79MPV"
       },
     ]
   },
@@ -28,7 +28,7 @@ instances = [
       },
       {
         name  = "SLACK_CHANNEL",
-        value = "C05B0BRV4DA"
+        value = "C02HQ87948N"
       },
     ]
   }
