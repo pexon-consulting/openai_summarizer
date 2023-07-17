@@ -3,3 +3,5 @@ openai==0.27.7
 beautifulsoup4==4.12.2
 slack_sdk==3.21.3
 python-dotenv==1.0.0
+feedparser==6.0.10
+python-dateutil==2.8.2

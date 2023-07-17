@@ -1,0 +1,13 @@
+{
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "python.analysis.extraPaths": [
+        "./client_modules"
+    ],
+    "[xml]": {
+        "editor.defaultFormatter": "redhat.vscode-xml"
+    }
+}

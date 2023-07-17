@@ -8,16 +8,17 @@ logging.getLogger(__name__)
 class OpenaiClient:
     """
     A class to interface with OpenAI's API.
-    
+
     Attributes
     ----------
     api_key : str
         The API key for OpenAI.
     """
+
     def __init__(self, openai_api_key):
         """
         Initializes the OpenaiClient with the provided API key.
-        
+
         Parameters
         ----------
         openai_api_key : str
@@ -30,10 +31,10 @@ class OpenaiClient:
         """
         Generates a conversation using OpenAI's GPT-3.5 model based on the provided system message and user input.
 
-        This function uses the "gpt-3.5-turbo-16k" model. The system message sets up the initial context of the 
+        This function uses the "gpt-3.5-turbo-16k" model. The system message sets up the initial context of the
         conversation, and the user message acts as an interaction with the model.
 
-        The function logs the beginning and end of the OpenAI request. If the OpenAI API call is successful, 
+        The function logs the beginning and end of the OpenAI request. If the OpenAI API call is successful,
         the function extracts the first choice's message content as the generated response.
 
         Parameters
@@ -46,7 +47,7 @@ class OpenaiClient:
         Returns
         -------
         str
-            The generated response from the AI model. If the OpenAI API call fails, an error is logged and the 
+            The generated response from the AI model. If the OpenAI API call fails, an error is logged and the
             program is terminated.
 
         Raises
@@ -63,16 +64,17 @@ class OpenaiClient:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             messages=messages,
-            max_tokens=1000,
+            max_tokens=2000,
             n=1,
             stop=None,
-            temperature=0.1,
+            temperature=0,
         )
 
         logging.info("openAI summary request done")
 
         if "choices" in response and len(response["choices"]) > 0:
             summary = response["choices"][0]["message"]["content"].strip()
+            logging.info(response["usage"])
             return summary
         else:
             logging.error(f"Sending to OpenAI has failed. (╯°□°）╯︵ ┻━┻")
@@ -81,7 +83,7 @@ class OpenaiClient:
     def generate_summary_confluence(self, statement: str, text: str) -> str:
         """
         Generates a summary using OpenAI's GPT-3 model based on the provided statement and text.
-        
+
         Parameters
         ----------
         statement : str

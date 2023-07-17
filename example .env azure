@@ -1,0 +1,6 @@
+OPENAI_API_KEY=
+SLACK_TOKEN=
+SLACK_CHANNEL=
+MODE=AZURE
+#AZURE_RSS_URL=https://azure.microsoft.com/de-de/updates/feed/?category=compute%2Ccontainers%2Cdatabases%2Cdevops%2Cai-machine-learning%2Cnetworking%2Csecurity%2Cstorage&status=nowavailable%2Cinpreview
+#CUSTOM_AZURE_STATEMENT=
