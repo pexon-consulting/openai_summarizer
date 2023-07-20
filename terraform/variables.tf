@@ -57,8 +57,7 @@ variable "secret_env_vars" {
 }
 
 variable "instances" {
-  type = list(object({
-    name = string
+  type = map(object({
     env_vars = list(object({
       name  = string
       value = string

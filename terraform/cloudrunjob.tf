@@ -12,7 +12,7 @@ locals {
 
 resource "google_cloud_run_v2_job" "default" {
   for_each = var.instances
-  name     = "${each.value.name}-${var.environment}"
+  name     = "${each.key}-${var.environment}"
   location = var.location
 
   template {

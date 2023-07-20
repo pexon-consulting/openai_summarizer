@@ -1,6 +1,6 @@
 resource "google_cloud_scheduler_job" "job" {
   for_each = var.instances
-  name             = "openai-${each.value.name}-${var.environment}-scheduler-trigger"
+  name             = "openai-${each.key}-${var.environment}-scheduler-trigger"
   description      = "Trigger Cloud Run job to execute OpenAI Blog Post Bot"
   schedule         = "30 * * * *"
   region = var.location
@@ -13,7 +13,7 @@ resource "google_cloud_scheduler_job" "job" {
 
   http_target {
     http_method = "POST"
-    uri         = "https://${var.location}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project}/jobs/${each.value.name}-${var.environment}:run"
+    uri         = "https://${var.location}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project}/jobs/${each.key}-${var.environment}:run"
     headers = {
       "User-Agent" : "Google-Cloud-Scheduler"
     }

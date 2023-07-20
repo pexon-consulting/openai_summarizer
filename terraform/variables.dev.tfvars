@@ -6,8 +6,7 @@ image_name              = "api"
 cloud_run_service_account_email = "cloud-run-deploymer@pexon-internal-services-dev.iam.gserviceaccount.com"
 
 instances = [
-  {
-    name = "confluence"
+  "confluence" = {
     env_vars = [ 
       {
         name  = "MODE",
@@ -19,8 +18,7 @@ instances = [
       },
     ]
   },
-  {
-    name = "azure"
+  "azure" = {
     env_vars = [ 
       {
         name  = "MODE",
