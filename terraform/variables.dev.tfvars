@@ -5,7 +5,7 @@ container_registry_name = "openai"
 image_name              = "api"
 cloud_run_service_account_email = "cloud-run-deploymer@pexon-internal-services-dev.iam.gserviceaccount.com"
 
-instances = [
+instances = {
   "confluence" = {
     env_vars = [ 
       {
@@ -30,7 +30,7 @@ instances = [
       },
     ]
   }
-]
+}
 
 env_vars = [
   {
