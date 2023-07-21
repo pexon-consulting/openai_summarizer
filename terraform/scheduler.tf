@@ -2,7 +2,7 @@ resource "google_cloud_scheduler_job" "job" {
   for_each = var.instances
   name             = "openai-${each.key}-${var.environment}-scheduler-trigger"
   description      = "Trigger Cloud Run job to execute OpenAI Blog Post Bot"
-  schedule         = "30 * * * *"
+  schedule         = each.value.schedule
   region = var.location
   time_zone        = "CET"
   attempt_deadline = "320s"

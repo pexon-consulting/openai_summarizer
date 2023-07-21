@@ -16,7 +16,8 @@ instances = {
         name  = "SLACK_CHANNEL",
         value = "C02G0S79MPV"
       },
-    ]
+    ],
+    schedule = "30 * * * *"
   },
   "azure" = {
     env_vars = [ 
@@ -28,7 +29,8 @@ instances = {
         name  = "SLACK_CHANNEL",
         value = "C02HQ87948N"
       },
-    ]
+    ],
+    schedule = "0 21 * * *"
   }
 }
 
