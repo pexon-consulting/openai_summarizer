@@ -162,4 +162,4 @@ def specific_day():
 if getenv("AZURE_SUMMARY_DATE"):
     specific_day()
 else:
-    summarize_newer_groups()
+    latest_posts()
