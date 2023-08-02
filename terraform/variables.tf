@@ -61,7 +61,8 @@ variable "instances" {
     env_vars = list(object({
       name  = string
       value = string
-    }))
+    })),
+    schedule = string
   }))
 }
 
