@@ -288,6 +288,11 @@ class ConfluenceClient:
         api_url = f"{self.url}/rest/api/content/search?cql=type%20in%20(blogpost)%20order%20by%20created%20desc&limit={limit}&expand=body.storage"
         response = requests.get(api_url, auth=(self.username, self.token))
 
+        if response.status_code != 200:
+            logging.error("Error retrieving blogpost:")
+            logging.error(response.json())
+            sys.exit(1)
+
         search = ConfluenceSearchResponse(response.json())
         logging.info(f"Retrieved {len(search.results)} blog posts")
         return search
