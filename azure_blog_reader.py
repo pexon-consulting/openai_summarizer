@@ -120,7 +120,6 @@ def summarize_newer_groups(groups, last_date):
 
             # If it is, print the date and the number of items
             print(f"Date: {date}, Item count: {len(groups[date])}")
-            summarize_day(groups, date)
         elif date < last_date:
             break
 
