@@ -1,0 +1,155 @@
+stages:
+    - validate
+    - build
+    - release
+    - deploy
+
+include:
+    - template: Terraform/Base.gitlab-ci.yml
+
+variables:
+    TF_ROOT: terraform
+
+before_script:
+    - export GOOGLE_CREDENTIALS=$([[ ! -z $CI_COMMIT_TAG ]] && echo $BASE64_GOOGLE_CREDENTIALS || echo $BASE64_GOOGLE_CREDENTIALS_DEV | base64 -d)
+
+build:
+    stage: build
+    image:
+        name: gcr.io/kaniko-project/executor:debug
+        entrypoint: [ "" ]
+    before_script:
+        - mkdir -p /kaniko/.docker
+        - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    script:
+        - >-
+            /kaniko/executor
+            --context "${CI_PROJECT_DIR}/"
+            --cache=true
+            --cache-repo="${CI_REGISTRY_IMAGE}/cache"
+            --no-push
+            --destination "${CI_REGISTRY_IMAGE}:$CI_COMMIT_SHA"
+            --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+            --label "org.opencontainers.image.url=$CI_PROJECT_URL"
+            --label "org.opencontainers.image.created=$CI_JOB_STARTED_AT"
+            --label "org.opencontainers.image.revision=$CI_COMMIT_SHA"
+            --label "org.opencontainers.image.version=$PROJECT_VERSION"
+            --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+            --tarPath image.tar
+    artifacts:
+        paths:
+            - image.tar
+        when: on_success
+
+deploy latest dev to gcp:
+    stage: release
+    needs:
+        - job: build
+    rules:
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "dev"
+    image:
+        name: gcr.io/go-containerregistry/crane:debug
+        entrypoint: [ "" ]
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - echo $GOOGLE_CR_CREDENTIALS_DEV | base64 -d | crane auth login -u _json_key --password-stdin europe-west3-docker.pkg.dev
+        - crane push image.tar europe-west3-docker.pkg.dev/pexon-internal-services-dev/openai-dev/api:$CI_COMMIT_SHA
+
+deploy latest prod to gcp:
+    stage: release
+    needs:
+        - job: build
+    rules:
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "main"
+    image:
+        name: gcr.io/go-containerregistry/crane:debug
+        entrypoint: [ "" ]
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - echo $GOOGLE_CR_CREDENTIALS | base64 -d | crane auth login -u _json_key --password-stdin europe-west3-docker.pkg.dev
+        - crane push image.tar europe-west3-docker.pkg.dev/pexon-internal-services/openai-prod/api:latest
+
+terraform fmt:
+    stage: validate
+    needs: [ ]
+    extends: .terraform:fmt
+
+terraform validate:
+    stage: validate
+    needs: [ ]
+    extends: .terraform:validate
+
+terraform build dev:
+    stage: deploy
+    rules:
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "dev"
+    needs:
+        - deploy latest dev to gcp
+    before_script:
+        - export TF_VAR_image_tag=$CI_COMMIT_SHA
+        - export TF_STATE_FILE_NAME=dev
+        - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
+        - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS_DEV | base64 -d)
+    extends: .terraform:build
+    script:
+        - gitlab-terraform plan -var-file=./variables.dev.tfvars
+        - gitlab-terraform plan-json
+    artifacts:
+        paths:
+            - terraform/files/*
+            - terraform/plan.json
+            - terraform/plan.cache
+
+terraform deploy dev:
+    stage: deploy
+    rules:
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "dev"
+    needs:
+        - terraform build dev
+    extends: .terraform:deploy
+    before_script:
+        - export TF_VAR_image_tag=$CI_COMMIT_SHA
+        - export TF_STATE_FILE_NAME=dev
+        - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
+        - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS_DEV | base64 -d)
+    dependencies:
+        - terraform build dev
+    environment:
+        name: dev
+
+terraform build prod:
+    stage: deploy
+    rules:
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "main"
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: never
+    needs:
+        - deploy latest prod to gcp
+    before_script:
+        - export TF_VAR_image_tag=latest
+        - export TF_STATE_FILE_NAME=default
+        - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
+        - export TF_CLI_ARGS="-var-file=./variables.prod.tfvars"
+        - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS | base64 -d)
+    extends: .terraform:build
+
+terraform deploy prod:
+    stage: deploy
+    rules:
+        - if: $CI_SERVER_URL =~ "https://gitlab.com" && $CI_COMMIT_BRANCH == "main"
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: never
+    needs:
+        - terraform build prod
+    extends: .terraform:deploy
+    before_script:
+        - export TF_VAR_image_tag=latest
+        - export TF_STATE_FILE_NAME=default
+        - export TF_ADDRESS=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${TF_STATE_FILE_NAME}
+        - export GOOGLE_CREDENTIALS=$(echo $BASE64_GOOGLE_CREDENTIALS | base64 -d)
+    dependencies:
+        - terraform build prod
+    environment:
+        name: default

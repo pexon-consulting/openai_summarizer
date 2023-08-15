@@ -4,7 +4,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from enum import Enum
 from uuid import uuid4
-
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +20,10 @@ class MessageType(Enum):
     NOTIFICATION : str
         Represents a notification.
     """
+
     BLOGPOST_SUMMARY: str = "blogpost_summary"
     NOTIFICATION: str = "notification"
+    AZURE_BLOGPOST: str = "azure_blogpost"
 
 
 class ActionTrigger(Enum):
@@ -35,6 +37,7 @@ class ActionTrigger(Enum):
     REQUESTED : str
         Represents an action that is triggered based on a request.
     """
+
     SCHEDULED: str = "scheduled"
     REQUESTED: str = "requested"
 
@@ -50,6 +53,7 @@ class MessageMetadata:
     event_payload : str
         Additional information about the event.
     """
+
     def __init__(self) -> None:
         self.event_type: MessageType
         self.event_payload: str
@@ -68,6 +72,7 @@ class SummaryMessage:
     metadata : MessageMetadata
         The metadata associated with the summary message.
     """
+
     def __init__(self, channel, text, metadata) -> None:
         self.channel: str = channel
         self.text: str = text
@@ -83,6 +88,7 @@ class SlackClient:
     client : WebClient
         WebClient object for Slack API interaction.
     """
+
     def __init__(self, slack_token: str) -> None:
         self.client: WebClient = WebClient(token=slack_token)
 
@@ -122,6 +128,7 @@ class SlackClient:
 
                 if event_payload.get("action_trigger") == ActionTrigger.SCHEDULED.value:
                     last_summary_id = event_payload.get("id")
+                    print(message)
                     break
 
         except SlackApiError as e:
@@ -138,33 +145,58 @@ class SlackClient:
         blogpost_url,
         blogpost_id,
         actiontrigger,
-        
     ):
         """
-        Sends a message to the specified channel containing the summary of a confluence post.
+        Sends a structured message to a specified Slack channel, summarizing a Confluence post.
+
+        The message contains sections split by blank lines from the summary, a header with the post title,
+        and a button linking to the original post. If the message sending fails, an error is logged and the
+        program is terminated.
 
         Parameters
         ----------
         summary : str
-            The summary of the confluence post.
+            The summary of the Confluence post.
         title : str
-            The title of the confluence post.
+            The title of the Confluence post.
         channel : str
-            The channel to send the message to.
+            The Slack channel to send the message to.
         blogpost_url : str
-            The URL of the blogpost.
+            The URL of the Confluence post.
         blogpost_id : str
-            The ID of the blogpost.
+            The ID of the Confluence post.
         actiontrigger : str
-            The action trigger for the event.
+            The action that triggered the sending of the message.
+
+        Raises
+        ------
+        SlackApiError
+            If there's an error when sending the message to the Slack channel.
+        SystemExit
+            If there's an error when sending the message to the Slack channel, after logging the error, the program is terminated.
         """
+        block_sections = []
+
+        sections = split_sections_by_blank_lines(summary)
+        for section in sections:
+            block_sections.append(
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f"{ section }"},
+                }
+            )
+
         try:
             blocks = [
                 {"type": "header", "text": {"type": "plain_text", "text": title}},
                 {
                     "type": "section",
-                    "text": {"type": "mrkdwn", "text": f"*Summary*\n { summary }"},
+                    "text": {"type": "mrkdwn", "text": f"*TL;DR:*"},
                 },
+            ]
+
+            blocks.extend(block_sections)
+            blocks.append(
                 {
                     "type": "actions",
                     "elements": [
@@ -175,8 +207,11 @@ class SlackClient:
                         }
                     ],
                 },
-            ]
+            )
 
+            logging.debug("Blocks:")
+            logging.debug(blocks)
+            logging.debug("Blocks:")
             response = self.client.chat_postMessage(
                 channel=channel,
                 blocks=blocks,
@@ -199,36 +234,130 @@ class SlackClient:
             logging.error(f"{e.response['error']}")
             sys.exit(1)
 
-    def send_message_notification(self, text: str, channel: str):
-        """
-        Sends a notification message to the specified channel.
-
-        Parameters
-        ----------
-        text : str
-            The text of the notification.
-        channel : str
-            The channel to send the notification to.
-        """
+    def send_azure_blogpost_summary(
+        self, sections: list, channel: str, date_published: str
+    ):
         try:
             message_uuid = uuid4()
 
-            response = self.client.chat_postMessage(
-                channel=channel,
-                text=text,
-                metadata={
-                    "event_type": MessageType.NOTIFICATION.value,
+            block_sections = []
+
+            for section in sections:
+                block_sections.append(
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": f"{ section }"},
+                    }
+                )
+                block_sections.append({"type": "divider"})
+
+            blocks = [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": f"Azure Blog updates from { date_published }",
+                    },
+                },
+            ]
+
+            blocks.extend(block_sections)
+
+            message_metadata = (
+                {
+                    "event_type": MessageType.AZURE_BLOGPOST.value,
                     "event_payload": {
                         "id": str(message_uuid),
                         "action_trigger": ActionTrigger.SCHEDULED.value,
+                        "date_published": date_published,
+                    },
+                },
+            )
+
+            response = self.client.chat_postMessage(
+                channel=channel,
+                blocks=blocks,
+                text="Azure posted a new Update!",
+                metadata={
+                    "event_type": MessageType.AZURE_BLOGPOST.value,
+                    "event_payload": {
+                        "id": str(message_uuid),
+                        "action_trigger": ActionTrigger.SCHEDULED.value,
+                        "date_published": date_published,
                     },
                 },
             )
 
             if 200 <= response.status_code < 300:
                 logger.info(f"Successfully sent Slack message with id: {message_uuid}")
+                logger.info(
+                    f"""Message metadata:
+                    {message_metadata}"""
+                )
 
         except SlackApiError as e:
             logging.error(f"Error sending message to Slack:  (╯°□°）╯︵ ┻━┻")
             logging.error(f"{e.response['error']}")
             sys.exit(1)
+
+    def get_last_azure_summary_date(self, channel) -> str:
+        """
+        Fetches the date of the last azure summary from the specified channel.
+
+        Parameters
+        ----------
+        channel : str
+            The channel to fetch the last summary date from.
+
+        Returns
+        -------
+        str
+            The date of the last summary. If no summary is found, returns an empty string.
+        """
+        last_summary_date = ""
+        try:
+            response = self.client.conversations_history(
+                channel=channel,
+                include_all_metadata=True,
+            )
+
+            messages = response["messages"]
+
+            for message in reversed(messages):
+                if (
+                    "metadata" not in message
+                    or message["metadata"]["event_type"]
+                    != MessageType.AZURE_BLOGPOST.value
+                ):
+                    continue
+
+                metadata = message["metadata"]
+                event_payload = metadata.get("event_payload", {})
+
+                last_summary_date = event_payload.get("date_published")
+
+        except SlackApiError as e:
+            logging.error(f"Failed to connect to Slack.  щ（ﾟДﾟщ）")
+            logging.error(f"{e}")
+            sys.exit(1)
+        return last_summary_date
+
+
+def split_sections_by_blank_lines(text):
+    """
+    Splits a given text into sections based on blank lines.
+
+    This function splits the input text into sections wherever it finds one or more blank lines. The blank lines act as delimiters
+    between different sections of the text.
+
+    Parameters
+    ----------
+    text : str
+        The input text to be split into sections.
+
+    Returns
+    -------
+    List[str]
+        A list of text sections extracted from the input. Each item in the list represents a distinct section from the input text.
+    """
+    return [section for section in text.split("\n\n")]
